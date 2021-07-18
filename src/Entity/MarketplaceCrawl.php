@@ -50,9 +50,14 @@ class MarketplaceCrawl
     private $response;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="ulid", nullable=true)
      */
-    private $browserSession;
+    private $crawlSessionUlid;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $statusCode;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -100,6 +105,11 @@ class MarketplaceCrawl
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $isValid;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $numberOfValidAxies;
 
     public function __construct(string $request, \DateTimeInterface $crawlDate) {
         $this->request = $request;
@@ -184,18 +194,6 @@ class MarketplaceCrawl
     public function setResponse(?string $response): self
     {
         $this->response = $response;
-
-        return $this;
-    }
-
-    public function getBrowserSession(): ?string
-    {
-        return $this->browserSession;
-    }
-
-    public function setBrowserSession(?string $browserSession): self
-    {
-        $this->browserSession = $browserSession;
 
         return $this;
     }
@@ -304,6 +302,42 @@ class MarketplaceCrawl
     public function setAveragePriceUsd(?float $averagePriceUsd): self
     {
         $this->averagePriceUsd = $averagePriceUsd;
+
+        return $this;
+    }
+
+    public function getNumberOfValidAxies(): ?int
+    {
+        return $this->numberOfValidAxies;
+    }
+
+    public function setNumberOfValidAxies(?int $numberOfValidAxies): self
+    {
+        $this->numberOfValidAxies = $numberOfValidAxies;
+
+        return $this;
+    }
+
+    public function getCrawlSessionUlid()
+    {
+        return $this->crawlSessionUlid;
+    }
+
+    public function setCrawlSessionUlid($crawlSessionUlid): self
+    {
+        $this->crawlSessionUlid = $crawlSessionUlid;
+
+        return $this;
+    }
+
+    public function getStatusCode(): ?int
+    {
+        return $this->statusCode;
+    }
+
+    public function setStatusCode(?int $statusCode): self
+    {
+        $this->statusCode = $statusCode;
 
         return $this;
     }

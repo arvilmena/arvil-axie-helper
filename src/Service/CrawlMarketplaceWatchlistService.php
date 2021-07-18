@@ -25,6 +25,8 @@ use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Uid\Ulid;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 /**
  * Class CrawlMarketplaceWatchlistService.
@@ -61,6 +63,7 @@ class CrawlMarketplaceWatchlistService
     public function crawlAll() {
 
         $urlsAndPayloads = [];
+        $crawlSessionUlid = new Ulid();
 
         $watchlists = $this->watchlistRepo->findAll();
 //        $watchlists = [$this->watchlistRepo->find(1)];
@@ -88,14 +91,27 @@ class CrawlMarketplaceWatchlistService
 
         foreach ($responses as $response) {
 
-            if ($response->getStatusCode() !== 200) {
+            $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now'));
+            $crawl
+                ->setCrawlSessionUlid($crawlSessionUlid);
+
+            try {
+                $statusCode = $response->getStatusCode();
+            } catch (TransportExceptionInterface $e) {
+                $this->em->persist($crawl);
+                continue;
+            }
+
+            $crawl->setStatusCode($statusCode);
+            
+            if ($statusCode !== 200) {
+                $this->em->persist($crawl);
                 continue;
             }
 
             $content = $response->toArray();
 
             $watchlist = $this->watchlistRepo->find((int) $response->getInfo('user_data')['watchlistId']);
-            $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now'));
             $crawl
                 ->setResponse(json_encode($content))
                 ->setMarketplaceWatchlist($watchlist)
@@ -110,7 +126,7 @@ class CrawlMarketplaceWatchlistService
                 $highestPriceEth = 0;
                 $lowestPriceUsd = PHP_INT_MAX;
                 $highestPriceUsd = 0;
-                $items = 0;
+                $count = 0;
                 $sumEth = 0;
                 $sumUsd = 0;
                 foreach($content['data']['axies']['results'] as $axie) {
@@ -135,7 +151,7 @@ class CrawlMarketplaceWatchlistService
                         continue;
                     }
 
-                    $items++;
+                    $count++;
                     if ($axie['auction']['currentPrice'] < $lowestPriceEth) {
                         $lowestPriceEth = (float) $axie['auction']['currentPrice'] / 100000000000000000;
                     }
@@ -151,7 +167,6 @@ class CrawlMarketplaceWatchlistService
                     $sumEth = $sumEth + (float) $axie['auction']['currentPrice'] / 100000000000000000;
                     $sumUsd = $sumUsd + (float) $axie['auction']['currentPriceUSD'];
                 }
-                echo $lowestPriceEth;
                 if ($lowestPriceEth !== PHP_INT_MAX) {
                     $crawl->setLowestPriceEth( $lowestPriceEth);
                 }
@@ -164,10 +179,11 @@ class CrawlMarketplaceWatchlistService
                 if ($highestPriceUsd !== 0) {
                     $crawl->setHighestPriceUsd($highestPriceUsd);
                 }
-                if ($items !== 0) {
-                    $crawl->setAveragePriceEth($sumEth / $items);
-                    $crawl->setAveragePriceUsd($sumUsd / $items);
+                if ($count !== 0) {
+                    $crawl->setAveragePriceEth($sumEth / $count);
+                    $crawl->setAveragePriceUsd($sumUsd / $count);
                 }
+                $crawl->setNumberOfValidAxies($count);
             }
 
             $this->em->persist($crawl);

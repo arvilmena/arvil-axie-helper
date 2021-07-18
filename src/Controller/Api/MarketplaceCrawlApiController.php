@@ -53,8 +53,9 @@ class MarketplaceCrawlApiController extends AbstractController
         $page = $payload['page'] ?? null;
         $apiResponse = $payload['apiResponse'] ?? null;
         $apiRequest = $payload['apiRequest'] ?? null;
-        $browserSession = $payload['browserSession'] ?? null;
+        $crawlSessionUlid = $payload['crawlSessionUlid'] ?? null;
         $browserRequestId = $payload['browserRequestId'] ?? null;
+        $statusCode = $payload['statusCode'] ?? null;
 
         $saved = false;
         $isDuplicate = false;
@@ -76,8 +77,9 @@ class MarketplaceCrawlApiController extends AbstractController
                     ->setBaseUrl($baseUrl)
                     ->setPage($page)
                     ->setResponse(json_encode($apiResponse))
-                    ->setBrowserSession($browserSession)
+                    ->setCrawlSessionUlid($crawlSessionUlid)
                     ->setBrowserRequestId($browserRequestId)
+                    ->setStatusCode($statusCode)
                 ;
 
                 $this->em->persist($marketPlaceCrawl);
