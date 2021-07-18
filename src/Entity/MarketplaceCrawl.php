@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MarketplaceCrawlRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
@@ -111,9 +113,15 @@ class MarketplaceCrawl
      */
     private $numberOfValidAxies;
 
+    /**
+     * @ORM\OneToMany(targetEntity=CrawlAxieResult::class, mappedBy="crawl")
+     */
+    private $crawlAxieResults;
+
     public function __construct(string $request, \DateTimeInterface $crawlDate) {
         $this->request = $request;
         $this->crawlDate = $crawlDate;
+        $this->crawlAxieResults = new ArrayCollection();
     }
 
     public function getId(): int
@@ -338,6 +346,36 @@ class MarketplaceCrawl
     public function setStatusCode(?int $statusCode): self
     {
         $this->statusCode = $statusCode;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CrawlAxieResult[]
+     */
+    public function getCrawlAxieResults(): Collection
+    {
+        return $this->crawlAxieResults;
+    }
+
+    public function addCrawlAxieResult(CrawlAxieResult $crawlAxieResult): self
+    {
+        if (!$this->crawlAxieResults->contains($crawlAxieResult)) {
+            $this->crawlAxieResults[] = $crawlAxieResult;
+            $crawlAxieResult->setCrawl($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCrawlAxieResult(CrawlAxieResult $crawlAxieResult): self
+    {
+        if ($this->crawlAxieResults->removeElement($crawlAxieResult)) {
+            // set the owning side to null (unless already changed)
+            if ($crawlAxieResult->getCrawl() === $this) {
+                $crawlAxieResult->setCrawl(null);
+            }
+        }
 
         return $this;
     }

@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello WatchlistController!{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+    <div class="container">
+        <div class="row">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Last</th>
+                    <th scope="col">Handle</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for watchlist in watchlists %}
+
+                    {% set accordionId = 'accordion-' ~ watchlist['$entity'].getId() %}
+                    {% set accordionTargetId = 'accordion-target-' ~ watchlist['$entity'].getId() %}
+                    {% if watchlist['$lastCrawlEntity'] %}
+                        {% set accordionTitle = 'Last crawl: ' ~ watchlist['$lastCrawlEntity'].getCrawlDate()|date('F j, Y, g:i a', "Asia/Manila") %}
+                    {% else %}
+                        {% set accordionTitle = 'Last crawl: No data' %}
+                    {% endif %}
+                    <tr>
+                        <th scope="row">{{ watchlist['$entity'].getId() }}</th>
+                        <td>{{ watchlist['$entity'].getName() }}</td>
+                        <td><pre style="max-width: 500px;max-height: 100px;">{{ watchlist['apiCriterias']|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></td>
+                        <td><a href="{{ watchlist['marketplaceUrl'] }}" target="_blank">View in marketplace</a></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <div class="accordion accordion-flush" id="{{ accordionId }}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingOne">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ accordionTargetId }}" aria-expanded="false" aria-controls="{{ accordionTargetId }}">
+                                            {{ accordionTitle }}
+                                        </button>
+                                    </h2>
+                                    <div id="{{ accordionTargetId }}" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#{{ accordionId }}">
+                                        <div class="accordion-body">
+                                            {% if watchlist['$lastCrawlEntity'] %}
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">#</th>
+                                                        <th scope="col">Lowest</th>
+                                                        <th scope="col">Highest</th>
+                                                        <th scope="col">Average</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <th scope="row">Eth</th>
+                                                    <td>{{ watchlist['$lastCrawlEntity'].getLowestPriceEth() }} ETH</td>
+                                                    <td>{{ watchlist['$lastCrawlEntity'].getHighestPriceEth() }} ETH</td>
+                                                    <td>{{ watchlist['$lastCrawlEntity'].getAveragePriceEth() }} ETH</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">USD</th>
+                                                    <td>$ {{ watchlist['$lastCrawlEntity'].getLowestPriceUsd() }}</td>
+                                                    <td>$ {{ watchlist['$lastCrawlEntity'].getHighestPriceUsd() }}</td>
+                                                    <td>$ {{ watchlist['$lastCrawlEntity'].getAveragePriceUsd() }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row" colspan="2">Number of Axies considered</th>
+                                                    <td colspan="2">{{ watchlist['$lastCrawlEntity'].getNumberOfValidAxies() }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row" colspan="2">Crawl Id</th>
+                                                    <td colspan="2">{{ watchlist['$lastCrawlEntity'].getId() }}</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                            {% endif %}
+
+                                            {% if watchlist['$axieResults']|length %}
+                                                <div class="d-flex mt-16 flex-wrap justify-content-center">
+                                                    {% for axie in watchlist['$axieResults'] %}
+                                                        <div class="m-1 cursor-pointer">
+                                                            <div class="axie-card" style="width: 240px;">
+                                                                <div class="border border-gray-3 bg-gray-4 rounded transition hover:shadow hover:border-gray-6">
+                                                                    <div class="px-12 py-16">
+                                                                        <div class="flex justify-center items-center img-placeholder">
+                                                                            {% if axie.getAxie().getImageUrl() %}
+                                                                                <img class="img-fluid" src="{{ axie.getAxie().getImageUrl() }}" />
+                                                                            {% endif %}
+                                                                        </div>
+                                                                        <div class="h-0 pb-24 flex flex-row flex-wrap justify-center overflow-hidden items-baseline">
+                                                                            <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>
+                                                                            <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
+                                                                            <a href="{{ axie.getAxie().getUrl() }}" target="_blank">
+                                                                                <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

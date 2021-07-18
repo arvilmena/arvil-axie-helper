@@ -25,7 +25,8 @@ class HomepageController extends AbstractController
      */
     public function index(): Response
     {
-        $this->crawlMarketplaceWatchlistService->crawlAll();
+//        $this->crawlMarketplaceWatchlistService->crawlAll();
+
         return $this->render('homepage/index.html.twig', [
             'controller_name' => 'HomepageController',
         ]);

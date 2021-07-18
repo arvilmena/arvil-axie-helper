@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Axie;
+use App\Entity\CrawlAxieResult;
 use App\Entity\MarketplaceCrawl;
 use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
@@ -134,8 +135,18 @@ class CrawlMarketplaceWatchlistService
                     if (null === $axieEntity) {
                         $axieEntity = new Axie((int) $axie['id']);
                     }
+                    if (empty($axieEntity->getImageUrl()) && ! empty($axie['image'])) {
+                        $axieEntity->setImageUrl(trim($axie['image']));
+                    }
                     $axieEntity->setRawData(json_encode($axie));
                     $this->em->persist($axieEntity);
+
+                    $axieResult = new CrawlAxieResult();
+                    $axieResult
+                        ->setCrawl($crawl)
+                        ->setAxie($axieEntity);
+                    $this->em->persist($axieResult);
+
 
                     // should not be banned.
                     if ( false !== $axie['battleInfo']['banned'] ) {
@@ -151,12 +162,17 @@ class CrawlMarketplaceWatchlistService
                         continue;
                     }
 
+                    $axieResult
+                        ->setPriceEth(round($axie['auction']['currentPrice'] / 100000000000000000, 4))
+                        ->setPriceUsd((float) $axie['auction']['currentPriceUSD']);
+                    $this->em->persist($axieResult);
+
                     $count++;
                     if ($axie['auction']['currentPrice'] < $lowestPriceEth) {
-                        $lowestPriceEth = (float) $axie['auction']['currentPrice'] / 100000000000000000;
+                        $lowestPriceEth = $axie['auction']['currentPrice'] / 100000000000000000;
                     }
                     if ($axie['auction']['currentPrice'] > $highestPriceEth) {
-                        $highestPriceEth = (float) $axie['auction']['currentPrice'] / 100000000000000000;
+                        $highestPriceEth = $axie['auction']['currentPrice'] / 100000000000000000;
                     }
                     if ($axie['auction']['currentPriceUSD'] < $lowestPriceUsd) {
                         $lowestPriceUsd = (float) $axie['auction']['currentPriceUSD'];
@@ -164,24 +180,24 @@ class CrawlMarketplaceWatchlistService
                     if ($axie['auction']['currentPriceUSD'] > $highestPriceUsd) {
                         $highestPriceUsd = (float) $axie['auction']['currentPriceUSD'];
                     }
-                    $sumEth = $sumEth + (float) $axie['auction']['currentPrice'] / 100000000000000000;
+                    $sumEth = $sumEth + $axie['auction']['currentPrice'] / 100000000000000000;
                     $sumUsd = $sumUsd + (float) $axie['auction']['currentPriceUSD'];
                 }
                 if ($lowestPriceEth !== PHP_INT_MAX) {
-                    $crawl->setLowestPriceEth( $lowestPriceEth);
+                    $crawl->setLowestPriceEth(round($lowestPriceEth, 4));
                 }
                 if ($lowestPriceUsd !== PHP_INT_MAX) {
                     $crawl->setLowestPriceUsd($lowestPriceUsd);
                 }
                 if ($highestPriceEth !== 0) {
-                    $crawl->setHighestPriceEth($highestPriceEth);
+                    $crawl->setHighestPriceEth(round($highestPriceEth, 4));
                 }
                 if ($highestPriceUsd !== 0) {
                     $crawl->setHighestPriceUsd($highestPriceUsd);
                 }
                 if ($count !== 0) {
-                    $crawl->setAveragePriceEth($sumEth / $count);
-                    $crawl->setAveragePriceUsd($sumUsd / $count);
+                    $crawl->setAveragePriceEth(round($sumEth / $count, 4));
+                    $crawl->setAveragePriceUsd(round($sumUsd / $count, 4));
                 }
                 $crawl->setNumberOfValidAxies($count);
             }
