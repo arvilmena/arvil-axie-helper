@@ -48,7 +48,7 @@ class CrawlMarketplaceWatchlistService
      */
     private $watchlistRepo;
 
-    const NUMBER_OF_RESULTS = 100;
+    const NUMBER_OF_RESULTS = 30;
     /**
      * @var AxieRepository
      */
