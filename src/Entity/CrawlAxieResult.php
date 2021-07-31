@@ -19,13 +19,13 @@ class CrawlAxieResult
 
     /**
      * @ORM\ManyToOne(targetEntity=MarketplaceCrawl::class, inversedBy="crawlAxieResults")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private $crawl;
 
     /**
      * @ORM\ManyToOne(targetEntity=Axie::class, inversedBy="crawlAxieResults")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private $axie;
 
