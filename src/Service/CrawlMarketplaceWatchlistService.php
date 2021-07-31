@@ -127,9 +127,11 @@ class CrawlMarketplaceWatchlistService
                 $highestPriceEth = 0;
                 $lowestPriceUsd = PHP_INT_MAX;
                 $highestPriceUsd = 0;
-                $count = 0;
                 $sumEth = 0;
                 $sumUsd = 0;
+                $totalAxieResult = sizeof($content['data']['axies']['results']);
+                $count = 0;
+                $summedForAverage = 0;
                 foreach($content['data']['axies']['results'] as $axie) {
                     $axieEntity = $this->axieRepo->find((int) $axie['id']);
                     if (null === $axieEntity) {
@@ -167,7 +169,6 @@ class CrawlMarketplaceWatchlistService
                         ->setPriceUsd((float) $axie['auction']['currentPriceUSD']);
                     $this->em->persist($axieResult);
 
-                    $count++;
                     if ($axie['auction']['currentPrice'] < $lowestPriceEth) {
                         $lowestPriceEth = $axie['auction']['currentPrice'] / 100000000000000000;
                     }
@@ -180,8 +181,13 @@ class CrawlMarketplaceWatchlistService
                     if ($axie['auction']['currentPriceUSD'] > $highestPriceUsd) {
                         $highestPriceUsd = (float) $axie['auction']['currentPriceUSD'];
                     }
-                    $sumEth = $sumEth + $axie['auction']['currentPrice'] / 100000000000000000;
-                    $sumUsd = $sumUsd + (float) $axie['auction']['currentPriceUSD'];
+                    // Don't include the first one, they can be noise sometimes
+                    if ($count > 0 && $totalAxieResult > 1) {
+                        $sumEth = $sumEth + $axie['auction']['currentPrice'] / 100000000000000000;
+                        $sumUsd = $sumUsd + (float) $axie['auction']['currentPriceUSD'];
+                        $summedForAverage++;
+                    }
+                    $count++;
                 }
                 if ($lowestPriceEth !== PHP_INT_MAX) {
                     $crawl->setLowestPriceEth(round($lowestPriceEth, 4));
@@ -195,9 +201,9 @@ class CrawlMarketplaceWatchlistService
                 if ($highestPriceUsd !== 0) {
                     $crawl->setHighestPriceUsd($highestPriceUsd);
                 }
-                if ($count !== 0) {
-                    $crawl->setAveragePriceEth(round($sumEth / $count, 4));
-                    $crawl->setAveragePriceUsd(round($sumUsd / $count, 4));
+                if ($summedForAverage !== 0) {
+                    $crawl->setAveragePriceEth(round($sumEth / $summedForAverage, 4));
+                    $crawl->setAveragePriceUsd(round($sumUsd / $summedForAverage, 4));
                 }
                 $crawl->setNumberOfValidAxies($count);
             }
