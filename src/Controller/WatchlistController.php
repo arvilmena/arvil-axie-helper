@@ -113,6 +113,21 @@ class WatchlistController extends AbstractController
                 $axieResults = null;
             }
             $_data['$axieResults'] = $axieResults;
+            $watchlistId = $watchlist->getId();
+
+            $_data['$lowestAverageToday'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 day ago'));
+            $_data['$lowestAverageYesterday'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 day ago'));
+            $_data['$lowestAverage3DaysAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('3 days ago'));
+            $_data['$lowestAveragePast6Months'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('6 months ago'));
+            $_data['$lowestAveragePastMonth'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 month ago'));
+            $_data['$lowestAverageTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 weeks ago'));
+
+            $_data['$lowestToday'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('1 day ago'));
+            $_data['$lowestYesterday'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('2 day ago'));
+            $_data['$lowest3DaysAgo'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('3 days ago'));
+            $_data['$lowestPast6Months'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('6 months ago'));
+            $_data['$lowestPastMonth'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('1 month ago'));
+            $_data['$lowestTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('2 weeks ago'));
 
             $context['watchlists'][] = $_data;
         }

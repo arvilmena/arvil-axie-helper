@@ -31,7 +31,7 @@ class MarketplaceWatchlist
 
     /**
      * Each watchlist item has many crawls. This is the inverse side.
-     * @ORM\OneToMany(targetEntity="MarketplaceCrawl", mappedBy="marketplaceWatchlist" )
+     * @ORM\OneToMany(targetEntity="MarketplaceCrawl", mappedBy="marketplaceWatchlist", orphanRemoval=true, cascade={"remove"})
      */
     private $crawls;
 

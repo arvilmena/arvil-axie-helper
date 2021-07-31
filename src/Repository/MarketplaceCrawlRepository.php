@@ -19,6 +19,56 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
         parent::__construct($registry, MarketplaceCrawl::class);
     }
 
+    public function pickWatchlistLowestAveragePriceBetweenDate($watchlistId, \DateTimeInterface $date1, $date2 = 'now')
+    {
+        if ('now' === $date2) {
+            $date2 = new \DateTime('now');
+        }
+        $earliest = $date1;
+        $oldest = $date2;
+        if ( $date2 < $date1 ) {
+            $earliest = $date2;
+            $oldest = $date1;
+        }
+
+        return $this->createQueryBuilder('c')
+            ->setMaxResults(1)
+            ->addOrderBy('c.averagePriceUsd', 'DESC')
+            ->andWhere('c.averagePriceUsd IS NOT NULL')
+            ->andWhere('c.marketplaceWatchlist = :watchlistId')
+            ->setParameter('watchlistId', $watchlistId)
+            ->andWhere('c.crawlDate BETWEEN :earliest and :oldest')
+            ->setParameter('earliest', $earliest)
+            ->setParameter('oldest', $oldest)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function pickWatchlistLowestPriceBetweenDate($watchlistId, \DateTimeInterface $date1, $date2 = 'now')
+    {
+        if ('now' === $date2) {
+            $date2 = new \DateTime('now');
+        }
+        $earliest = $date1;
+        $oldest = $date2;
+        if ( $date2 < $date1 ) {
+            $earliest = $date2;
+            $oldest = $date1;
+        }
+
+        return $this->createQueryBuilder('c')
+            ->setMaxResults(1)
+            ->addOrderBy('c.lowestPriceUsd', 'DESC')
+            ->andWhere('c.lowestPriceUsd IS NOT NULL')
+            ->andWhere('c.marketplaceWatchlist = :watchlistId')
+            ->setParameter('watchlistId', $watchlistId)
+            ->andWhere('c.crawlDate BETWEEN :earliest and :oldest')
+            ->setParameter('earliest', $earliest)
+            ->setParameter('oldest', $oldest)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     // /**
     //  * @return MarketplaceCrawl[] Returns an array of MarketplaceCrawl objects
     //  */

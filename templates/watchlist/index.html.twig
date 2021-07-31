@@ -46,40 +46,66 @@
                                     </h2>
                                     <div id="{{ accordionTargetId }}" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#{{ accordionId }}">
                                         <div class="accordion-body">
-                                            {% if watchlist['$lastCrawlEntity'] %}
+
                                             <table class="table table-bordered">
                                                 <thead>
-                                                    <tr>
-                                                        <th scope="col">#</th>
-                                                        <th scope="col">Lowest</th>
-                                                        <th scope="col">Highest</th>
-                                                        <th scope="col">Average</th>
-                                                    </tr>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">ID</th>
+                                                    <th scope="col">Date</th>
+                                                    <th scope="col">Lowest</th>
+                                                    <th scope="col">Average</th>
+                                                    <th scope="col">Highest</th>
+                                                </tr>
                                                 </thead>
                                                 <tbody>
                                                 <tr>
-                                                    <th scope="row">Eth</th>
-                                                    <td>{{ watchlist['$lastCrawlEntity'].getLowestPriceEth() }} ETH</td>
-                                                    <td>{{ watchlist['$lastCrawlEntity'].getHighestPriceEth() }} ETH</td>
-                                                    <td>{{ watchlist['$lastCrawlEntity'].getAveragePriceEth() }} ETH</td>
+                                                    <th scope="col" colspan="6" class="text-center">Lowest</th>
                                                 </tr>
+                                                {% for node in [
+                                                    '$lastCrawlEntity',
+                                                    '$lowestToday',
+                                                    '$lowestYesterday',
+                                                    '$lowest3DaysAgo',
+                                                    '$lowestTwoWeeksAgo',
+                                                    '$lowestPastMonth',
+                                                    '$lowestPast6Months'
+                                                ] %}
+                                                    {% if watchlist[node]|length %}
+                                                        <tr>
+                                                            <th scope="row">{{ node }}</th>
+                                                            <td>{{ watchlist[ node ].getId() }}</td>
+                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia') }}</td>
+                                                            <td>{{ watchlist[ node ].getLowestPriceUsd()|format_currency('USD') }}</td>
+                                                            <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
+                                                            <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
                                                 <tr>
-                                                    <th scope="row">USD</th>
-                                                    <td>$ {{ watchlist['$lastCrawlEntity'].getLowestPriceUsd() }}</td>
-                                                    <td>$ {{ watchlist['$lastCrawlEntity'].getHighestPriceUsd() }}</td>
-                                                    <td>$ {{ watchlist['$lastCrawlEntity'].getAveragePriceUsd() }}</td>
+                                                    <th scope="col" colspan="6" class="text-center">Averages</th>
                                                 </tr>
-                                                <tr>
-                                                    <th scope="row" colspan="2">Number of Axies considered</th>
-                                                    <td colspan="2">{{ watchlist['$lastCrawlEntity'].getNumberOfValidAxies() }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row" colspan="2">Crawl Id</th>
-                                                    <td colspan="2">{{ watchlist['$lastCrawlEntity'].getId() }}</td>
-                                                </tr>
+                                                {% for node in [
+                                                    '$lowestAverageToday',
+                                                    '$lowestAverageYesterday',
+                                                    '$lowestAverage3DaysAgo',
+                                                    '$lowestAverageTwoWeeksAgo',
+                                                    '$lowestAveragePastMonth',
+                                                    '$lowestAveragePast6Months',
+                                                ] %}
+                                                    {% if watchlist[node]|length %}
+                                                        <tr>
+                                                            <th scope="row">{{ node }}</th>
+                                                            <td>{{ watchlist[ node ].getId() }}</td>
+                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia') }}</td>
+                                                            <td>{{ watchlist[ node ].getLowestPriceUsd()|format_currency('USD') }}</td>
+                                                            <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
+                                                            <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
                                                 </tbody>
                                             </table>
-                                            {% endif %}
 
                                             {% if watchlist['$axieResults']|length %}
                                                 <div class="d-flex mt-16 flex-wrap justify-content-center">

@@ -69,7 +69,7 @@ class MarketplaceCrawl
     /**
      * Many Crawls have one watchlist. This is the owning side.
      * @ManyToOne(targetEntity="MarketplaceWatchlist", inversedBy="crawls")
-     * @JoinColumn(name="marketplace_watchlist_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
+     * @JoinColumn(name="marketplace_watchlist_id", referencedColumnName="id", nullable=true)
      */
     private $marketplaceWatchlist;
 
