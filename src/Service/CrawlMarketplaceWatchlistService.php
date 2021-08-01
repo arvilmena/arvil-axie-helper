@@ -92,7 +92,7 @@ class CrawlMarketplaceWatchlistService
 
         foreach ($responses as $response) {
 
-            $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now'));
+            $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now', new \DateTimeZone('UTC')));
             $crawl
                 ->setCrawlSessionUlid($crawlSessionUlid);
 
