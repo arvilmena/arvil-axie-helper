@@ -148,7 +148,7 @@ class WatchlistController extends AbstractController
                 ->where('w.id = :marketplaceId')
                 ->andWhere('c.isValid = true')
                 ->andWhere('c.numberOfValidAxies > 0')
-                ->setParameter('marketplaceId', 12)
+                ->setParameter('marketplaceId', $watchlist->getId())
                 ->orderBy('c.crawlDate', 'DESC')
                 ->setMaxResults(600)
                 ->getQuery()
