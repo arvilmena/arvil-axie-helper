@@ -132,6 +132,7 @@ class CrawlMarketplaceWatchlistService
                 $totalAxieResult = sizeof($content['data']['axies']['results']);
                 $count = 0;
                 $summedForAverage = 0;
+                $prices = [];
                 foreach($content['data']['axies']['results'] as $axie) {
                     $axieEntity = $this->axieRepo->find((int) $axie['id']);
                     if (null === $axieEntity) {
@@ -188,7 +189,26 @@ class CrawlMarketplaceWatchlistService
                         $summedForAverage++;
                     }
                     $count++;
+
+                    $prices[] = [
+                        'price' => (float) $axie['auction']['currentPriceUSD'],
+                        'axieEntity' => $axieEntity,
+                        'axie' => $axie,
+                    ];
                 }
+
+                usort($prices, function($axie1, $axie2) {
+                    if ($axie1['axie']['auction']['currentPriceUSD'] == $axie2['axie']['auction']['currentPriceUSD']) {
+                        return 0;
+                    }
+                    return ($axie1['axie']['auction']['currentPriceUSD'] < $axie2['axie']['auction']['currentPriceUSD']) ? -1 : 1;
+                });
+
+                if (sizeof($prices) >= 2 && ! empty($prices[1])) {
+                    $crawl->setSecondLowestPriceUsd($prices[1]['price']);
+                    $crawl->setSecondLowestPriceAxie($prices[1]['axieEntity']);
+                }
+
                 if ($lowestPriceEth !== PHP_INT_MAX) {
                     $crawl->setLowestPriceEth(round($lowestPriceEth, 4));
                 }

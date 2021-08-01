@@ -118,6 +118,17 @@ class MarketplaceCrawl
      */
     private $crawlAxieResults;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $secondLowestPriceUsd;
+
+    /**
+     * One Crawl has One Axie
+     * @ORM\ManyToOne(targetEntity=Axie::class)
+     */
+    private $secondLowestPriceAxie;
+
     public function __construct(string $request, \DateTimeInterface $crawlDate) {
         $this->request = $request;
         $this->crawlDate = $crawlDate;
@@ -376,6 +387,30 @@ class MarketplaceCrawl
                 $crawlAxieResult->setCrawl(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSecondLowestPriceUsd(): ?float
+    {
+        return $this->secondLowestPriceUsd;
+    }
+
+    public function setSecondLowestPriceUsd(?float $secondLowestPriceUsd): self
+    {
+        $this->secondLowestPriceUsd = $secondLowestPriceUsd;
+
+        return $this;
+    }
+
+    public function getSecondLowestPriceAxie(): ?Axie
+    {
+        return $this->secondLowestPriceAxie;
+    }
+
+    public function setSecondLowestPriceAxie(?Axie $secondLowestPriceAxie): self
+    {
+        $this->secondLowestPriceAxie = $secondLowestPriceAxie;
 
         return $this;
     }
