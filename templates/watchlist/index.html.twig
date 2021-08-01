@@ -135,106 +135,128 @@
                                                 </div>
                                             {% endif %}
                                             <style>
-                                                .chart {
-                                                    width: 100%;
-                                                    height: 500px;
-                                                }
                                             </style>
-                                            <div class="chart" id="{{ chartId }}">
+                                            <canvas class="chart" id="{{ chartId }}"  width="1000" height="600">
 
-                                            </div>
+                                            </canvas>
 
                                             <script>
-                                                am4core.ready(function() {
 
-                                                    // Themes begin
-                                                    am4core.useTheme(am4themes_animated);
-                                                    // Themes end
+                                                (function() {
 
-                                                    // Create chart instance
-                                                    var chart = am4core.create("{{ chartId }}", am4charts.XYChart);
+                                                    const labels = {{ watchlist['$chartData']['crawlDate']|json_encode|raw }};
+                                                    const data = {
+                                                        labels: labels,
+                                                        datasets: [
+                                                            {
+                                                                label: 'lowestPriceUsd',
+                                                                data: {{ watchlist['$chartData']['lowestPriceUsd']|json_encode|raw }},
+                                                                borderColor: 'green',
+                                                                backgroundColor: 'transparent',
+                                                                borderWidth: 1,
+                                                                cubicInterpolationMode: 'monotone',
+                                                                fill: false,
+                                                                tension: 0.4
+                                                            },
+                                                            {
+                                                                label: 'averagePriceUsd',
+                                                                data: {{ watchlist['$chartData']['averagePriceUsd']|json_encode|raw }},
+                                                                borderColor: 'blue',
+                                                                backgroundColor: 'transparent',
+                                                                borderWidth: 1,
+                                                                cubicInterpolationMode: 'monotone',
+                                                                fill: false,
+                                                                tension: 0.4
+                                                            },
+                                                            {
+                                                                label: 'secondLowestPriceUsd',
+                                                                data: {{ watchlist['$chartData']['secondLowestPriceUsd']|json_encode|raw }},
+                                                                borderColor: 'orange',
+                                                                backgroundColor: 'transparent',
+                                                                borderWidth: 1,
+                                                                cubicInterpolationMode: 'monotone',
+                                                                fill: false,
+                                                                tension: 0.4
+                                                            }
+                                                        ]
+                                                    };
+                                                    const config = {
+                                                        type: 'line',
+                                                        data: data,
+                                                        options: {
+                                                            responsive: true,
+                                                            interaction: {
+                                                                intersect: true,
+                                                            },
+                                                            elements: {
+                                                                point:{
+                                                                    radius: 0
+                                                                }
+                                                            },
+                                                            scales: {
+                                                                x: {
+                                                                    display: true,
+                                                                    title: {
+                                                                        display: true
+                                                                    },
+                                                                    type: 'time',
+                                                                    time: {
+                                                                        displayFormats: {
+                                                                            'millisecond': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'second': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'minute': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'hour': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'day': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'week': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'month': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'quarter': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            'year': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                        }
+                                                                    }
+                                                                },
+                                                                y: {
+                                                                    display: true,
+                                                                    title: {
+                                                                        display: true,
+                                                                        text: 'Value'
+                                                                    },
+                                                                }
+                                                            },
+                                                            plugins: {
+                                                                zoom: {
+                                                                    zoom: {
+                                                                        wheel: {
+                                                                            enabled: true,
+                                                                        },
+                                                                        pinch: {
+                                                                            enabled: true
+                                                                        },
+                                                                        mode: 'xy',
+                                                                    },
+                                                                    pan: {
+                                                                        enabled: true,
+                                                                        mode: 'xy',
+                                                                    },
+                                                                },
+                                                                tooltip: {
+                                                                    mode: 'index',
+                                                                    intersect: false
+                                                                },
+                                                                hover: {
+                                                                    mode: 'index',
+                                                                    intersect: false
+                                                                }
+                                                            }
+                                                        },
+                                                    };
 
-                                                    // Add data
-                                                    chart.data = {{ watchlist['$chartData']|json_encode|raw }};
+                                                    var myChart = new Chart(
+                                                        document.getElementById('{{ chartId }}'),
+                                                        config
+                                                    );
 
-                                                    // Create category axis
-                                                    var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-                                                    dateAxis.baseInterval = {
-                                                        "timeUnit": "minute",
-                                                        "count": 30
-                                                    }
+                                                })();
 
-                                                    // Create value axis
-                                                    var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-
-                                                    // Create series
-                                                    var series1 = chart.series.push(new am4charts.LineSeries());
-                                                    series1.dataFields.valueY = "lowestPriceUsd";
-                                                    series1.dataFields.dateX = "crawlDate";
-                                                    series1.name = "lowestPriceUsd";
-                                                    series1.bullets.push(new am4charts.CircleBullet());
-                                                    series1.tooltipText = "{valueY}";
-                                                    series1.legendSettings.valueText = "{valueY}";
-                                                    series1.visible = false;
-                                                    series1.smoothing = "monotoneX";
-
-                                                    var series2 = chart.series.push(new am4charts.LineSeries());
-                                                    series2.dataFields.valueY = "averagePriceUsd";
-                                                    series2.dataFields.dateX = "crawlDate";
-                                                    series2.name = 'averagePriceUsd';
-                                                    series2.bullets.push(new am4charts.CircleBullet());
-                                                    series2.tooltipText = "{valueY}";
-                                                    series2.legendSettings.valueText = "{valueY}";
-                                                    series2.smoothing = "monotoneX";
-
-                                                    var series3 = chart.series.push(new am4charts.LineSeries());
-                                                    series3.dataFields.valueY = "secondLowestPriceUsd";
-                                                    series3.dataFields.dateX = "crawlDate";
-                                                    series3.name = 'secondLowestPriceUsd';
-                                                    series3.bullets.push(new am4charts.CircleBullet());
-                                                    series3.tooltipText = "{valueY}";
-                                                    series3.legendSettings.valueText = "{valueY}";
-                                                    series3.smoothing = "monotoneX";
-
-                                                    // Add chart cursor
-                                                    chart.cursor = new am4charts.XYCursor();
-                                                    chart.cursor.behavior = "zoomY";
-
-
-                                                    let hs1 = series1.segments.template.states.create("hover")
-                                                    hs1.properties.strokeWidth = 5;
-                                                    series1.segments.template.strokeWidth = 1;
-
-                                                    let hs2 = series2.segments.template.states.create("hover")
-                                                    hs2.properties.strokeWidth = 5;
-                                                    series2.segments.template.strokeWidth = 1;
-
-                                                    let hs3 = series3.segments.template.states.create("hover")
-                                                    hs3.properties.strokeWidth = 5;
-                                                    series3.segments.template.strokeWidth = 1;
-
-                                                    // Add legend
-                                                    chart.legend = new am4charts.Legend();
-                                                    chart.legend.itemContainers.template.events.on("over", function(event) {
-                                                        var segments = event.target.dataItem.dataContext.segments;
-                                                        segments.each(function(segment) {
-                                                            segment.isHover = true;
-                                                        })
-                                                    })
-
-                                                    chart.legend.itemContainers.template.events.on("out", function(event) {
-                                                        var segments = event.target.dataItem.dataContext.segments;
-                                                        segments.each(function(segment) {
-                                                            segment.isHover = false;
-                                                        })
-                                                    })
-
-                                                    // Create scrollbars
-                                                    chart.scrollbarX = new am4core.Scrollbar();
-                                                    chart.scrollbarY = new am4core.Scrollbar();
-
-
-                                                }); // end am4core.ready()
                                             </script>
                                         </div>
                                         {# .accordion-body #}

@@ -62,8 +62,8 @@ class WatchlistController extends AbstractController
         /**
          * @var $watchlists MarketplaceWatchlist[]
          */
-//        $watchlists = $this->watchlistRepo->findAll();
-        $watchlists = [$this->watchlistRepo->find(12)];
+        $watchlists = $this->watchlistRepo->findAll();
+//        $watchlists = [$this->watchlistRepo->find(12)];
         foreach($watchlists as $watchlist) {
             $_data = [
                 '$entity' => $watchlist,
@@ -147,7 +147,7 @@ class WatchlistController extends AbstractController
                 ->andWhere('c.isValid = true')
                 ->andWhere('c.numberOfValidAxies > 0')
                 ->setParameter('marketplaceId', 12)
-                ->setMaxResults(2920)
+                ->setMaxResults(600)
                 ->getQuery()
                 ->getResult()
             ;
@@ -162,7 +162,10 @@ class WatchlistController extends AbstractController
                     ]
                 ]);
             }
-            $_data['$chartData'] = $chartData;
+            $_data['$chartData']['crawlDate'] = array_column($chartData, 'crawlDate');
+            $_data['$chartData']['lowestPriceUsd'] = array_column($chartData, 'lowestPriceUsd');
+            $_data['$chartData']['averagePriceUsd'] = array_column($chartData, 'averagePriceUsd');
+            $_data['$chartData']['secondLowestPriceUsd'] = array_column($chartData, 'secondLowestPriceUsd');
 
             $context['watchlists'][] = $_data;
         }
