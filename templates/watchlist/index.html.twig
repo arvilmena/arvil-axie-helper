@@ -53,14 +53,14 @@
                                                     <th scope="col">#</th>
                                                     <th scope="col">ID</th>
                                                     <th scope="col">Date</th>
-                                                    <th scope="col">Lowest</th>
+                                                    <th scope="col">2nd Lowest</th>
                                                     <th scope="col">Average</th>
                                                     <th scope="col">Highest</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 <tr>
-                                                    <th scope="col" colspan="6" class="text-center">Lowest</th>
+                                                    <th scope="col" colspan="6" class="text-center">Lowest (first result skipped)</th>
                                                 </tr>
                                                 {% for node in [
                                                     '$lastCrawlEntity',
@@ -76,7 +76,7 @@
                                                             <th scope="row">{{ node }}</th>
                                                             <td>{{ watchlist[ node ].getId() }}</td>
                                                             <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia') }}</td>
-                                                            <td>{{ watchlist[ node ].getLowestPriceUsd()|format_currency('USD') }}</td>
+                                                            <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
                                                         </tr>
@@ -98,7 +98,7 @@
                                                             <th scope="row">{{ node }}</th>
                                                             <td>{{ watchlist[ node ].getId() }}</td>
                                                             <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia') }}</td>
-                                                            <td>{{ watchlist[ node ].getLowestPriceUsd()|format_currency('USD') }}</td>
+                                                            <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
                                                         </tr>

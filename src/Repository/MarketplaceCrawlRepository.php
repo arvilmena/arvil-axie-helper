@@ -44,7 +44,7 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function pickWatchlistLowestPriceBetweenDate($watchlistId, \DateTimeInterface $date1, $date2 = 'now')
+    public function pickSecondLowestPriceBetweenDate($watchlistId, \DateTimeInterface $date1, $date2 = 'now')
     {
         if ('now' === $date2) {
             $date2 = new \DateTime('tomorrow', new \DateTimeZone('UTC'));
@@ -58,8 +58,8 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('c')
             ->setMaxResults(1)
-            ->orderBy('c.lowestPriceUsd', 'ASC')
-            ->andWhere('c.lowestPriceUsd IS NOT NULL')
+            ->orderBy('c.secondLowestPriceUsd', 'ASC')
+            ->andWhere('c.secondLowestPriceUsd IS NOT NULL')
             ->andWhere('c.marketplaceWatchlist = :watchlistId')
             ->setParameter('watchlistId', $watchlistId)
             ->andWhere('c.crawlDate BETWEEN :earliest and :oldest')

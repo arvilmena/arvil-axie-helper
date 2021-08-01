@@ -204,9 +204,14 @@ class CrawlMarketplaceWatchlistService
                     return ($axie1['axie']['auction']['currentPriceUSD'] < $axie2['axie']['auction']['currentPriceUSD']) ? -1 : 1;
                 });
 
-                if (sizeof($prices) >= 2 && ! empty($prices[1])) {
-                    $crawl->setSecondLowestPriceUsd($prices[1]['price']);
-                    $crawl->setSecondLowestPriceAxie($prices[1]['axieEntity']);
+                if (sizeof($prices) > 0) {
+                    if ( sizeof($prices) >= 2 ) {
+                        $crawl->setSecondLowestPriceUsd($prices[1]['price']);
+                        $crawl->setSecondLowestPriceAxie($prices[1]['axieEntity']);
+                    } else {
+                        $crawl->setSecondLowestPriceUsd($prices[0]['price']);
+                        $crawl->setSecondLowestPriceAxie($prices[0]['axieEntity']);
+                    }
                 }
 
                 if ($lowestPriceEth !== PHP_INT_MAX) {

@@ -115,6 +115,7 @@ class MarketplaceCrawl
 
     /**
      * @ORM\OneToMany(targetEntity=CrawlAxieResult::class, mappedBy="crawl")
+     * @ORM\OrderBy({"priceUsd" = "ASC"})
      */
     private $crawlAxieResults;
 
