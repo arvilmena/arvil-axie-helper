@@ -22,7 +22,7 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
     public function pickWatchlistLowestAveragePriceBetweenDate($watchlistId, \DateTimeInterface $date1, $date2 = 'now')
     {
         if ('now' === $date2) {
-            $date2 = new \DateTime('now');
+            $date2 = new \DateTime('tomorrow', new \DateTimeZone('UTC'));
         }
         $earliest = $date1;
         $oldest = $date2;
@@ -33,13 +33,13 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('c')
             ->setMaxResults(1)
-            ->addOrderBy('c.averagePriceUsd', 'DESC')
+            ->orderBy('c.averagePriceUsd', 'ASC')
             ->andWhere('c.averagePriceUsd IS NOT NULL')
             ->andWhere('c.marketplaceWatchlist = :watchlistId')
             ->setParameter('watchlistId', $watchlistId)
             ->andWhere('c.crawlDate BETWEEN :earliest and :oldest')
-            ->setParameter('earliest', $earliest)
-            ->setParameter('oldest', $oldest)
+            ->setParameter('earliest', $earliest->format('Y-m-d'))
+            ->setParameter('oldest', $oldest->format('Y-m-d'))
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -47,7 +47,7 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
     public function pickWatchlistLowestPriceBetweenDate($watchlistId, \DateTimeInterface $date1, $date2 = 'now')
     {
         if ('now' === $date2) {
-            $date2 = new \DateTime('now');
+            $date2 = new \DateTime('tomorrow', new \DateTimeZone('UTC'));
         }
         $earliest = $date1;
         $oldest = $date2;
@@ -58,13 +58,13 @@ class MarketplaceCrawlRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('c')
             ->setMaxResults(1)
-            ->addOrderBy('c.lowestPriceUsd', 'DESC')
+            ->orderBy('c.lowestPriceUsd', 'ASC')
             ->andWhere('c.lowestPriceUsd IS NOT NULL')
             ->andWhere('c.marketplaceWatchlist = :watchlistId')
             ->setParameter('watchlistId', $watchlistId)
             ->andWhere('c.crawlDate BETWEEN :earliest and :oldest')
-            ->setParameter('earliest', $earliest)
-            ->setParameter('oldest', $oldest)
+            ->setParameter('earliest', $earliest->format('Y-m-d'))
+            ->setParameter('oldest', $oldest->format('Y-m-d'))
             ->getQuery()
             ->getOneOrNullResult();
     }

@@ -71,7 +71,7 @@
                                                     '$lowestPastMonth',
                                                     '$lowestPast6Months'
                                                 ] %}
-                                                    {% if watchlist[node]|length %}
+                                                    {% if node in watchlist|keys %}
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
                                                             <td>{{ watchlist[ node ].getId() }}</td>
@@ -93,7 +93,7 @@
                                                     '$lowestAveragePastMonth',
                                                     '$lowestAveragePast6Months',
                                                 ] %}
-                                                    {% if watchlist[node]|length %}
+                                                    {% if node in watchlist|keys %}
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
                                                             <td>{{ watchlist[ node ].getId() }}</td>

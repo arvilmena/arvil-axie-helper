@@ -55,6 +55,7 @@ class WatchlistController extends AbstractController
          * @var $watchlists MarketplaceWatchlist[]
          */
         $watchlists = $this->watchlistRepo->findAll();
+//        $watchlists = [$this->watchlistRepo->find(12)];
         foreach($watchlists as $watchlist) {
             $_data = [
                 '$entity' => $watchlist,
@@ -115,19 +116,23 @@ class WatchlistController extends AbstractController
             $_data['$axieResults'] = $axieResults;
             $watchlistId = $watchlist->getId();
 
-            $_data['$lowestAverageToday'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 day ago'));
-            $_data['$lowestAverageYesterday'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 day ago'));
-            $_data['$lowestAverage3DaysAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('3 days ago'));
-            $_data['$lowestAveragePast6Months'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('6 months ago'));
-            $_data['$lowestAveragePastMonth'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 month ago'));
-            $_data['$lowestAverageTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 weeks ago'));
+            $defaultTimezone = new \DateTimeZone('UTC');
 
-            $_data['$lowestToday'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('1 day ago'));
-            $_data['$lowestYesterday'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('2 day ago'));
-            $_data['$lowest3DaysAgo'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('3 days ago'));
-            $_data['$lowestPast6Months'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('6 months ago'));
-            $_data['$lowestPastMonth'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('1 month ago'));
-            $_data['$lowestTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('2 weeks ago'));
+
+
+            $_data['$lowestToday'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('1 day ago', $defaultTimezone));
+            $_data['$lowestYesterday'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('2 day ago', $defaultTimezone));
+            $_data['$lowest3DaysAgo'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('3 days ago', $defaultTimezone));
+            $_data['$lowestPast6Months'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('6 months ago', $defaultTimezone));
+            $_data['$lowestPastMonth'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('1 month ago', $defaultTimezone));
+            $_data['$lowestTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestPriceBetweenDate($watchlistId, new \DateTime('2 weeks ago', $defaultTimezone));
+
+            $_data['$lowestAverageToday'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 day ago', $defaultTimezone));
+            $_data['$lowestAverageYesterday'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 day ago', $defaultTimezone));
+            $_data['$lowestAverage3DaysAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('3 days ago', $defaultTimezone));
+            $_data['$lowestAveragePast6Months'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('6 months ago', $defaultTimezone));
+            $_data['$lowestAveragePastMonth'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 month ago', $defaultTimezone));
+            $_data['$lowestAverageTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 weeks ago', $defaultTimezone));
 
             $context['watchlists'][] = $_data;
         }
