@@ -22,6 +22,7 @@
                 <tbody>
                 {% for watchlist in watchlists %}
 
+                    {% set chartId = 'chart-' ~ watchlist['$entity'].getId() %}
                     {% set accordionId = 'accordion-' ~ watchlist['$entity'].getId() %}
                     {% set accordionTargetId = 'accordion-target-' ~ watchlist['$entity'].getId() %}
                     {% if watchlist['$lastCrawlEntity'] %}
@@ -133,11 +134,114 @@
                                                     {% endfor %}
                                                 </div>
                                             {% endif %}
+                                            <style>
+                                                .chart {
+                                                    width: 100%;
+                                                    height: 500px;
+                                                }
+                                            </style>
+                                            <div class="chart" id="{{ chartId }}">
 
+                                            </div>
+
+                                            <script>
+                                                am4core.ready(function() {
+
+                                                    // Themes begin
+                                                    am4core.useTheme(am4themes_animated);
+                                                    // Themes end
+
+                                                    // Create chart instance
+                                                    var chart = am4core.create("{{ chartId }}", am4charts.XYChart);
+
+                                                    // Add data
+                                                    chart.data = {{ watchlist['$chartData']|json_encode|raw }};
+
+                                                    // Create category axis
+                                                    var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+                                                    dateAxis.baseInterval = {
+                                                        "timeUnit": "minute",
+                                                        "count": 30
+                                                    }
+
+                                                    // Create value axis
+                                                    var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+
+                                                    // Create series
+                                                    var series1 = chart.series.push(new am4charts.LineSeries());
+                                                    series1.dataFields.valueY = "lowestPriceUsd";
+                                                    series1.dataFields.dateX = "crawlDate";
+                                                    series1.name = "lowestPriceUsd";
+                                                    series1.bullets.push(new am4charts.CircleBullet());
+                                                    series1.tooltipText = "{valueY}";
+                                                    series1.legendSettings.valueText = "{valueY}";
+                                                    series1.visible = false;
+                                                    series1.smoothing = "monotoneX";
+
+                                                    var series2 = chart.series.push(new am4charts.LineSeries());
+                                                    series2.dataFields.valueY = "averagePriceUsd";
+                                                    series2.dataFields.dateX = "crawlDate";
+                                                    series2.name = 'averagePriceUsd';
+                                                    series2.bullets.push(new am4charts.CircleBullet());
+                                                    series2.tooltipText = "{valueY}";
+                                                    series2.legendSettings.valueText = "{valueY}";
+                                                    series2.smoothing = "monotoneX";
+
+                                                    var series3 = chart.series.push(new am4charts.LineSeries());
+                                                    series3.dataFields.valueY = "secondLowestPriceUsd";
+                                                    series3.dataFields.dateX = "crawlDate";
+                                                    series3.name = 'secondLowestPriceUsd';
+                                                    series3.bullets.push(new am4charts.CircleBullet());
+                                                    series3.tooltipText = "{valueY}";
+                                                    series3.legendSettings.valueText = "{valueY}";
+                                                    series3.smoothing = "monotoneX";
+
+                                                    // Add chart cursor
+                                                    chart.cursor = new am4charts.XYCursor();
+                                                    chart.cursor.behavior = "zoomY";
+
+
+                                                    let hs1 = series1.segments.template.states.create("hover")
+                                                    hs1.properties.strokeWidth = 5;
+                                                    series1.segments.template.strokeWidth = 1;
+
+                                                    let hs2 = series2.segments.template.states.create("hover")
+                                                    hs2.properties.strokeWidth = 5;
+                                                    series2.segments.template.strokeWidth = 1;
+
+                                                    let hs3 = series3.segments.template.states.create("hover")
+                                                    hs3.properties.strokeWidth = 5;
+                                                    series3.segments.template.strokeWidth = 1;
+
+                                                    // Add legend
+                                                    chart.legend = new am4charts.Legend();
+                                                    chart.legend.itemContainers.template.events.on("over", function(event) {
+                                                        var segments = event.target.dataItem.dataContext.segments;
+                                                        segments.each(function(segment) {
+                                                            segment.isHover = true;
+                                                        })
+                                                    })
+
+                                                    chart.legend.itemContainers.template.events.on("out", function(event) {
+                                                        var segments = event.target.dataItem.dataContext.segments;
+                                                        segments.each(function(segment) {
+                                                            segment.isHover = false;
+                                                        })
+                                                    })
+
+                                                    // Create scrollbars
+                                                    chart.scrollbarX = new am4core.Scrollbar();
+                                                    chart.scrollbarY = new am4core.Scrollbar();
+
+
+                                                }); // end am4core.ready()
+                                            </script>
                                         </div>
+                                        {# .accordion-body #}
                                     </div>
                                 </div>
                             </div>
+                            {# .accordion #}
                         </td>
                     </tr>
                 {% endfor %}

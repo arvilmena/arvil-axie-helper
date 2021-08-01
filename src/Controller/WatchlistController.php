@@ -11,6 +11,8 @@ use App\Repository\MarketplaceWatchlistRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class WatchlistController extends AbstractController
 {
@@ -30,18 +32,24 @@ class WatchlistController extends AbstractController
      * @var CrawlAxieResultRepository
      */
     private $crawlAxieResultRepo;
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
 
     public function __construct(
         MarketplaceWatchlistRepository $watchlistRepo,
         MarketplaceCrawlRepository $crawlRepo,
         AxieRepository $axieRepo,
-        CrawlAxieResultRepository $crawlAxieResultRepo
+        CrawlAxieResultRepository $crawlAxieResultRepo,
+        SerializerInterface $serializer
     ) {
 
         $this->watchlistRepo = $watchlistRepo;
         $this->crawlRepo = $crawlRepo;
         $this->axieRepo = $axieRepo;
         $this->crawlAxieResultRepo = $crawlAxieResultRepo;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -54,8 +62,8 @@ class WatchlistController extends AbstractController
         /**
          * @var $watchlists MarketplaceWatchlist[]
          */
-        $watchlists = $this->watchlistRepo->findAll();
-//        $watchlists = [$this->watchlistRepo->find(12)];
+//        $watchlists = $this->watchlistRepo->findAll();
+        $watchlists = [$this->watchlistRepo->find(12)];
         foreach($watchlists as $watchlist) {
             $_data = [
                 '$entity' => $watchlist,
@@ -118,8 +126,6 @@ class WatchlistController extends AbstractController
 
             $defaultTimezone = new \DateTimeZone('UTC');
 
-
-
             $_data['$lowestToday'] = $this->crawlRepo->pickSecondLowestPriceBetweenDate($watchlistId, new \DateTime('1 day ago', $defaultTimezone));
             $_data['$lowestYesterday'] = $this->crawlRepo->pickSecondLowestPriceBetweenDate($watchlistId, new \DateTime('2 day ago', $defaultTimezone));
             $_data['$lowest3DaysAgo'] = $this->crawlRepo->pickSecondLowestPriceBetweenDate($watchlistId, new \DateTime('3 days ago', $defaultTimezone));
@@ -133,6 +139,30 @@ class WatchlistController extends AbstractController
             $_data['$lowestAveragePast6Months'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('6 months ago', $defaultTimezone));
             $_data['$lowestAveragePastMonth'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 month ago', $defaultTimezone));
             $_data['$lowestAverageTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 weeks ago', $defaultTimezone));
+
+            $crawls = $this->crawlRepo->createQueryBuilder('c')
+                ->leftJoin('c.marketplaceWatchlist', 'w')
+                ->addSelect('w')
+                ->where('w.id = :marketplaceId')
+                ->andWhere('c.isValid = true')
+                ->andWhere('c.numberOfValidAxies > 0')
+                ->setParameter('marketplaceId', 12)
+                ->setMaxResults(2920)
+                ->getQuery()
+                ->getResult()
+            ;
+            $chartData = [];
+            foreach($crawls as $crawl) {
+                $chartData[] = $this->serializer->normalize($crawl, null, [
+                    AbstractNormalizer::ATTRIBUTES => [
+                        'crawlDate',
+                        'averagePriceUsd',
+                        'lowestPriceUsd',
+                        'secondLowestPriceUsd'
+                    ]
+                ]);
+            }
+            $_data['$chartData'] = $chartData;
 
             $context['watchlists'][] = $_data;
         }
