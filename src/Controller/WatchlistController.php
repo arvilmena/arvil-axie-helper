@@ -12,6 +12,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class WatchlistController extends AbstractController
@@ -147,10 +149,12 @@ class WatchlistController extends AbstractController
                 ->andWhere('c.isValid = true')
                 ->andWhere('c.numberOfValidAxies > 0')
                 ->setParameter('marketplaceId', 12)
+                ->orderBy('c.crawlDate', 'DESC')
                 ->setMaxResults(600)
                 ->getQuery()
                 ->getResult()
             ;
+            $crawls = array_reverse($crawls, false);
             $chartData = [];
             foreach($crawls as $crawl) {
                 $chartData[] = $this->serializer->normalize($crawl, null, [
@@ -162,7 +166,14 @@ class WatchlistController extends AbstractController
                     ]
                 ]);
             }
-            $_data['$chartData']['crawlDate'] = array_column($chartData, 'crawlDate');
+            $crawlDates = array_column($chartData, 'crawlDate');
+            $serializer = new Serializer([new DateTimeNormalizer()]);
+            array_walk($crawlDates, function(&$item1, $key, Serializer $serializer) {
+                $date = new \DateTime($item1, new \DateTimeZone('UTC'));
+                $date->setTimezone(new \DateTimeZone("Asia/Manila"));
+                $item1 = $serializer->normalize($date);
+            }, $serializer);
+            $_data['$chartData']['crawlDate'] = $crawlDates;
             $_data['$chartData']['lowestPriceUsd'] = array_column($chartData, 'lowestPriceUsd');
             $_data['$chartData']['averagePriceUsd'] = array_column($chartData, 'averagePriceUsd');
             $_data['$chartData']['secondLowestPriceUsd'] = array_column($chartData, 'secondLowestPriceUsd');

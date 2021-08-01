@@ -76,7 +76,7 @@
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
                                                             <td>{{ watchlist[ node ].getId() }}</td>
-                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia') }}</td>
+                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
                                                             <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
@@ -98,7 +98,7 @@
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
                                                             <td>{{ watchlist[ node ].getId() }}</td>
-                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia') }}</td>
+                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
                                                             <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
