@@ -116,7 +116,7 @@ class WatchlistController extends AbstractController
             $_data['$lastCrawlEntity'] = $lastCrawl;
 
             if ( null !== $lastCrawl ) {
-                $axieResults = $this->crawlAxieResultRepo->findBy(['crawl' => $lastCrawl], ['priceEth' => 'ASC']);
+                $axieResults = $this->crawlAxieResultRepo->findBy(['crawl' => $lastCrawl], ['priceUsd' => 'ASC']);
                 if (sizeof($axieResults) > 10) {
                     $axieResults = array_slice($axieResults, 0, 10);
                 }

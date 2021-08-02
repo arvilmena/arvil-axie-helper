@@ -75,7 +75,9 @@
                                                     {% if node in watchlist|keys %}
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
-                                                            <td>{{ watchlist[ node ].getId() }}</td>
+                                                            <td>
+                                                                <a href="{{ path('marketplace_crawl_id', {id: watchlist[ node ].getId() }) }}">{{ watchlist[ node ].getId() }}</a>
+                                                            </td>
                                                             <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
                                                             <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
@@ -97,7 +99,7 @@
                                                     {% if node in watchlist|keys %}
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
-                                                            <td>{{ watchlist[ node ].getId() }}</td>
+                                                            <td><a href="{{ path('marketplace_crawl_id', {id: watchlist[ node ].getId() }) }}">{{ watchlist[ node ].getId() }}</a></td>
                                                             <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
                                                             <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
                                                             <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
@@ -125,6 +127,9 @@
                                                                             <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
                                                                             <a href="{{ axie.getAxie().getUrl() }}" target="_blank">
                                                                                 <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
+                                                                                <a href="{{ path('axie_id', {id: axie.getAxie().getId() }) }}">
+                                                                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View Axie data</h6>
+                                                                                </a>
                                                                             </a>
                                                                         </div>
                                                                     </div>

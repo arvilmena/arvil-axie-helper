@@ -148,6 +148,11 @@ class CrawlMarketplaceWatchlistService
                     $axieResult
                         ->setCrawl($crawl)
                         ->setAxie($axieEntity);
+
+                    if (isset($axie['breedCount'])) {
+                        $axieResult->setBreedCount((int) $axie['breedCount']);
+                    }
+
                     $this->em->persist($axieResult);
 
 

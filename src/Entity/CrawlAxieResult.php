@@ -39,6 +39,21 @@ class CrawlAxieResult
      */
     private $priceUsd;
 
+    /**
+     * @ORM\Column(type="smallint", nullable=true)
+     */
+    private $breedCount;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $crawlDate;
+
+    public function __construct()
+    {
+        $this->crawlDate = new \DateTime('now');
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -88,6 +103,30 @@ class CrawlAxieResult
     public function setPriceUsd(?float $priceUsd): self
     {
         $this->priceUsd = $priceUsd;
+
+        return $this;
+    }
+
+    public function getBreedCount(): ?int
+    {
+        return $this->breedCount;
+    }
+
+    public function setBreedCount(?int $breedCount): self
+    {
+        $this->breedCount = $breedCount;
+
+        return $this;
+    }
+
+    public function getCrawlDate(): ?\DateTimeInterface
+    {
+        return $this->crawlDate;
+    }
+
+    public function setCrawlDate(?\DateTimeInterface $crawlDate): self
+    {
+        $this->crawlDate = $crawlDate;
 
         return $this;
     }

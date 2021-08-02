@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AxieController!{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+<div class="example-wrapper">
+
+
+    <div class="container">
+        <div class="row">
+
+            <div class="d-flex mb-3 flex-wrap justify-content-center">
+                {% set axie = data['$axieEntity'] %}
+                <div class="m-1 cursor-pointer">
+                    <div class="axie-card" style="width: 240px;">
+                        <div class="border border-gray-3 bg-gray-4 rounded transition hover:shadow hover:border-gray-6">
+                            <div class="px-12 py-16">
+                                <div class="flex justify-center items-center img-placeholder">
+                                    {% if axie.getImageUrl() %}
+                                        <img class="img-fluid" src="{{ axie.getImageUrl() }}" />
+                                    {% endif %}
+                                </div>
+                                <div class="h-0 pb-24 flex flex-row flex-wrap justify-center overflow-hidden items-baseline">
+                                    {#                                    <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>#}
+                                    {#                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>#}
+                                    <a href="{{ axie.getUrl() }}" target="_blank">
+                                        <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th scope="col">crawl ID</th>
+                    <th scope="col">Marketplace Watch</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Breed Count</th>
+                    <th scope="col">Price USD</th>
+                    <th scope="col">Price Eth</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for result in data['$crawlAxieResults'] %}
+                    <tr>
+                        <td>
+                            {% if result.getCrawl() %}
+                                <a href="{{ path('marketplace_crawl_id', {id: result.getCrawl().getId() }) }}">{{ result.getCrawl().getId() }}</a>
+                            {% endif %}
+                        </td>
+                        <th scope="row">
+                            {% if result.getCrawl() and result.getCrawl().getMarketplaceWatchlist() %}
+                                {{ result.getCrawl().getMarketplaceWatchlist().getName() }}
+                            {% endif %}
+                        </th>
+                        <td>{{ result.getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
+                        <td>{{ result.getBreedCount() }}</td>
+                        <td>{{ result.getPriceUsd()|format_currency('USD') }}</td>
+                        <td>{{ result.getPriceEth()|format_currency('ETH') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

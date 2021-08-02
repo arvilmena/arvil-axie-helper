@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello WatchlistController!{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+    <div class="container">
+        <div class="row">
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th colspan="2">Watchlist:</th>
+                    <th colspan="4">{{ (data['$watchlistEntity']) ? (data['$watchlistEntity'].getName()) : '' }}</th>
+                </tr>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">2nd Lowest</th>
+                    <th scope="col">Average</th>
+                    <th scope="col">Highest</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">{{ data['$crawlEntity'].getId() }}</th>
+                    <td><a href="{{ path('marketplace_crawl_id', {id: data['$crawlEntity'].getId() }) }}">{{ data['$crawlEntity'].getId() }}</a></td>
+                    <td>{{ data['$crawlEntity'].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
+                    <td>{{ data['$crawlEntity'].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
+                    <td>{{ data['$crawlEntity'].getAveragePriceUsd()|format_currency('USD') }}</td>
+                    <td>{{ data['$crawlEntity'].getHighestPriceUsd()|format_currency('USD') }}</td>
+                </tr>
+                </tbody>
+            </table>
+
+            {% if data['$axieResults']|length %}
+                <div class="d-flex mt-16 flex-wrap justify-content-center">
+                    {% for axie in data['$axieResults'] %}
+                        <div class="m-1 cursor-pointer">
+                            <div class="axie-card" style="width: 240px;">
+                                <div class="border border-gray-3 bg-gray-4 rounded transition hover:shadow hover:border-gray-6">
+                                    <div class="px-12 py-16">
+                                        <div class="flex justify-center items-center img-placeholder">
+                                            {% if axie.getAxie().getImageUrl() %}
+                                                <img class="img-fluid" src="{{ axie.getAxie().getImageUrl() }}" />
+                                            {% endif %}
+                                        </div>
+                                        <div class="h-0 pb-24 flex flex-row flex-wrap justify-center overflow-hidden items-baseline">
+                                            <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>
+                                            <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
+                                            <a href="{{ axie.getAxie().getUrl() }}" target="_blank">
+                                                <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
+                                            </a>
+                                            <a href="{{ path('axie_id', {id: axie.getAxie().getId() }) }}">
+                                                <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View Axie data</h6>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endblock %}
