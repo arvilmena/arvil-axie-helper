@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\MarketplaceCrawl;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Service\CrawlMarketplaceWatchlistService;
+use App\Util\AxieGeneUtil;
 use BCMathExtended\BC;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -65,274 +66,31 @@ class HomepageController extends AbstractController
         $output = [];
 
         $axieData = <<<JSON
-{
-  "data": {
-    "axie": {
-      "id": "2114909",
-      "image": "https://storage.googleapis.com/assets.axieinfinity.com/axies/2114909/axie/axie-full-transparent.png",
-      "class": "Beast",
-      "chain": "ronin",
-      "name": "Axie #2114909",
-      "genes": "0x610442400200948002008020040100400a0280a0085290400802844",
-      "owner": "0x98d5b7aebbaa22a3244273da91f894c352a90004",
-      "birthDate": 1626262476,
-      "bodyShape": "Normal",
-      "sireId": 1748604,
-      "sireClass": "Beast",
-      "matronId": 1750377,
-      "matronClass": "Beast",
-      "stage": 4,
-      "title": "",
-      "breedCount": 2,
-      "level": 1,
-      "figure": {
-        "atlas": "https://storage.googleapis.com/assets.axieinfinity.com/axies/2114909/axie/axie.atlas",
-        "model": "https://storage.googleapis.com/assets.axieinfinity.com/axies/2114909/axie/axie.json",
-        "image": "https://storage.googleapis.com/assets.axieinfinity.com/axies/2114909/axie/axie.png",
-        "__typename": "AxieFigure"
-      },
-      "parts": [
-        {
-          "id": "eyes-zeal",
-          "name": "Zeal",
-          "class": "Beast",
-          "type": "Eyes",
-          "specialGenes": null,
-          "stage": 1,
-          "abilities": [],
-          "__typename": "AxiePart"
-        },
-        {
-          "id": "ears-nut-cracker",
-          "name": "Nut Cracker",
-          "class": "Beast",
-          "type": "Ears",
-          "specialGenes": null,
-          "stage": 1,
-          "abilities": [],
-          "__typename": "AxiePart"
-        },
-        {
-          "id": "back-risky-beast",
-          "name": "Risky Beast",
-          "class": "Beast",
-          "type": "Back",
-          "specialGenes": null,
-          "stage": 1,
-          "abilities": [
-            {
-              "id": "beast-back-08",
-              "name": "Revenge Arrow",
-              "attack": 125,
-              "defense": 25,
-              "energy": 1,
-              "description": "Deal 150% damage if this Axie is in Last Stand.",
-              "backgroundUrl": "https://storage.googleapis.com/axie-cdn/game/cards/base/beast-back-08.png",
-              "effectIconUrl": "https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/raise-damage.png",
-              "__typename": "AxieCardAbility"
-            }
-          ],
-          "__typename": "AxiePart"
-        },
-        {
-          "id": "mouth-nut-cracker",
-          "name": "Nut Cracker",
-          "class": "Beast",
-          "type": "Mouth",
-          "specialGenes": null,
-          "stage": 1,
-          "abilities": [
-            {
-              "id": "beast-mouth-02",
-              "name": "Nut Crack",
-              "attack": 105,
-              "defense": 30,
-              "energy": 1,
-              "description": "Deal 120% damage when comboed with another 'Nut Cracker' card.",
-              "backgroundUrl": "https://storage.googleapis.com/axie-cdn/game/cards/base/beast-mouth-02.png",
-              "effectIconUrl": "https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/raise-damage.png",
-              "__typename": "AxieCardAbility"
-            }
-          ],
-          "__typename": "AxiePart"
-        },
-        {
-          "id": "horn-dual-blade",
-          "name": "Dual Blade",
-          "class": "Beast",
-          "type": "Horn",
-          "specialGenes": null,
-          "stage": 1,
-          "abilities": [
-            {
-              "id": "beast-horn-10",
-              "name": "Sinister Strike",
-              "attack": 130,
-              "defense": 20,
-              "energy": 1,
-              "description": "Deal 250% damage on critical strikes.",
-              "backgroundUrl": "https://storage.googleapis.com/axie-cdn/game/cards/base/beast-horn-10.png",
-              "effectIconUrl": "https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/raise-damage.png",
-              "__typename": "AxieCardAbility"
-            }
-          ],
-          "__typename": "AxiePart"
-        },
-        {
-          "id": "tail-hare",
-          "name": "Hare",
-          "class": "Beast",
-          "type": "Tail",
-          "specialGenes": null,
-          "stage": 1,
-          "abilities": [
-            {
-              "id": "beast-tail-08",
-              "name": "Hare Dagger",
-              "attack": 120,
-              "defense": 30,
-              "energy": 1,
-              "description": "Draw a card if this Axie attacks at the beginning of the round.",
-              "backgroundUrl": "https://storage.googleapis.com/axie-cdn/game/cards/base/beast-tail-08.png",
-              "effectIconUrl": "https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/draw-card.png",
-              "__typename": "AxieCardAbility"
-            }
-          ],
-          "__typename": "AxiePart"
-        }
-      ],
-      "stats": {
-        "hp": 31,
-        "speed": 41,
-        "skill": 31,
-        "morale": 61,
-        "__typename": "AxieStats"
-      },
-      "auction": null,
-      "ownerProfile": {
-        "name": "snipe scholar 7",
-        "__typename": "PublicProfile"
-      },
-      "battleInfo": {
-        "banned": false,
-        "banUntil": null,
-        "level": 0,
-        "__typename": "AxieBattleInfo"
-      },
-      "children": [
-        {
-          "id": "2503463",
-          "name": "Axie #2503463",
-          "class": "Beast",
-          "image": "https://storage.googleapis.com/assets.axieinfinity.com/axies/2503463/axie/axie-full-transparent.png",
-          "title": "",
-          "stage": 4,
-          "__typename": "Axie"
-        },
-        {
-          "id": "2503453",
-          "name": "Axie #2503453",
-          "class": "Beast",
-          "image": "https://storage.googleapis.com/assets.axieinfinity.com/axies/2503453/axie/axie-full-transparent.png",
-          "title": "",
-          "stage": 4,
-          "__typename": "Axie"
-        }
-      ],
-      "__typename": "Axie"
-    }
-  }
-}
+{"data":{"axie":{"id":"1199226","image":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1199226/axie/axie-full-transparent.png","class":"Beast","chain":"ronin","name":"Axie #1199226","genes":"0x820140300a3100a00a4200400200802004010040020080200c31886","owner":"0x0e9fd1f001bf4e02e58ee147b366aeb05b60a3f8","birthDate":1624916745,"bodyShape":"Normal","sireId":1018763,"sireClass":"Beast","matronId":994581,"matronClass":"Beast","stage":4,"title":"","breedCount":3,"level":1,"figure":{"atlas":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1199226/axie/axie.atlas","model":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1199226/axie/axie.json","image":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1199226/axie/axie.png","__typename":"AxieFigure"},"parts":[{"id":"eyes-chubby","name":"Chubby","class":"Beast","type":"Eyes","specialGenes":null,"stage":1,"abilities":[],"__typename":"AxiePart"},{"id":"ears-nyan","name":"Nyan","class":"Beast","type":"Ears","specialGenes":null,"stage":1,"abilities":[],"__typename":"AxiePart"},{"id":"back-ronin","name":"Ronin","class":"Beast","type":"Back","specialGenes":null,"stage":1,"abilities":[{"id":"beast-back-02","name":"Single Combat","attack":75,"defense":0,"energy":1,"description":"Guaranteed critical strike when comboed with at least 2 other cards.","backgroundUrl":"https://storage.googleapis.com/axie-cdn/game/cards/base/beast-back-02.png","effectIconUrl":"https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/critical.png","__typename":"AxieCardAbility"}],"__typename":"AxiePart"},{"id":"mouth-confident","name":"Confident","class":"Beast","type":"Mouth","specialGenes":null,"stage":1,"abilities":[{"id":"beast-mouth-10","name":"Self Rally","attack":0,"defense":30,"energy":0,"description":"Apply 2 Morale+ to this Axie for 2 rounds.","backgroundUrl":"https://storage.googleapis.com/axie-cdn/game/cards/base/beast-mouth-10.png","effectIconUrl":"https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/morale-up.png","__typename":"AxieCardAbility"}],"__typename":"AxiePart"},{"id":"horn-imp","name":"Imp","class":"Beast","type":"Horn","specialGenes":null,"stage":1,"abilities":[{"id":"beast-horn-04","name":"Ivory Stab","attack":70,"defense":20,"energy":1,"description":"Gain 1 energy per critical strike dealt by your team this round.","backgroundUrl":"https://storage.googleapis.com/axie-cdn/game/cards/base/beast-horn-04.png","effectIconUrl":"https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/gain-energy.png","__typename":"AxieCardAbility"}],"__typename":"AxiePart"},{"id":"tail-gerbil","name":"Gerbil","class":"Beast","type":"Tail","specialGenes":null,"stage":1,"abilities":[{"id":"beast-tail-12","name":"Gerbil Jump","attack":40,"defense":20,"energy":1,"description":"Skip the closest target if there are 2 or more enemies remaining.","backgroundUrl":"https://storage.googleapis.com/axie-cdn/game/cards/base/beast-tail-12.png","effectIconUrl":"https://storage.googleapis.com/axie-cdn/game/cards/effect-icons/prioritize.png","__typename":"AxieCardAbility"}],"__typename":"AxiePart"}],"stats":{"hp":31,"speed":41,"skill":31,"morale":61,"__typename":"AxieStats"},"auction":{"startingPrice":"200000000000000000","endingPrice":"145000000000000000","startingTimestamp":"1625359803","endingTimestamp":"1625446203","duration":"86400","timeLeft":"0","currentPrice":"145000000000000000","currentPriceUSD":"395.45","suggestedPrice":"145000000000000000","seller":"0x5792c42bce928ab08ce20a2eb81a87903389ae0d","listingIndex":544013,"state":"47060262009505509337859606159184138593734573437024097745338025813687603625713","__typename":"Auction"},"ownerProfile":{"name":"AGA Scholar 15","__typename":"PublicProfile"},"battleInfo":{"banned":false,"banUntil":null,"level":0,"__typename":"AxieBattleInfo"},"children":[{"id":"1462465","name":"Axie #1462465","class":"Beast","image":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1462465/axie/axie-full-transparent.png","title":"","stage":4,"__typename":"Axie"},{"id":"1462501","name":"12","class":"Beast","image":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1462501/axie/axie-full-transparent.png","title":"","stage":4,"__typename":"Axie"},{"id":"1462453","name":"DONT SELL- Gotchya","class":"Beast","image":"https://storage.googleapis.com/assets.axieinfinity.com/axies/1462453/axie/axie-full-transparent.png","title":"","stage":4,"__typename":"Axie"}],"__typename":"Axie"}}}
 JSON;
-        /*
-            axies[id] = result;
-            if (result.stage > 2) {
-                axies[id].genes = genesToBin(BigInt(axies[id].genes));
-                let traits = getTraits(axies[id].genes);
-                let qp = getQualityAndPureness(traits, axies[id].class.toLowerCase());
-                axies[id].traits = traits;
-                axies[id].quality = qp.quality;
-                axies[id].pureness = qp.pureness;
-            }
-         */
 
-        $hex = '0x30000000030812220c2310c20c2308c20cc420c40ca328ca0cc330c60c2330cc';
+        $axieData = json_decode($axieData, true);
 
-        function base_convert_arbitrary($number, $fromBase, $toBase) {
-            $digits = '0123456789abcdefghijklmnopqrstuvwxyz';
-            $length = strlen($number);
-            $result = '';
+        $geneData = new AxieGeneUtil($axieData['data']['axie']['genes']);
 
-            $nibbles = array();
-            for ($i = 0; $i < $length; ++$i) {
-                $nibbles[$i] = strpos($digits, str_split($number)[$i]);
-            }
-
-            do {
-                $value = 0;
-                $newlen = 0;
-                for ($i = 0; $i < $length; ++$i) {
-                    $value = $value * $fromBase + $nibbles[$i];
-                    if ($value >= $toBase) {
-                        $nibbles[$newlen++] = (int)($value / $toBase);
-                        $value %= $toBase;
-                    }
-                    else if ($newlen > 0) {
-                        $nibbles[$newlen++] = 0;
-                    }
-                }
-                $length = $newlen;
-                $result = $digits[$value].$result;
-            }
-            while ($newlen != 0);
-            return $result;
-        }
-
-        $originalHexcode = '0x810a43400a310c8004009080020214200a028c6002008020042314a';
-
-        $bigInt = BC::hexdec($originalHexcode);
-
-        $binary = base_convert_arbitrary($bigInt, 10, 2);
-
-        $strMul = str_repeat("0", (256 - strlen($binary)));
-
-        $final = $strMul . $binary;
-
-?>
-
-        <table>
-            <tr>
-                <td>Axie ID 2744481</td>
-                <td>calculated</td>
-                <td>expected</td>
-            </tr>
-            <tr>
-                <td>Original Genes</td>
-                <td colspan="2"><?= $originalHexcode; ?></td>
-            </tr>
-            <tr>
-                <td>BigInt</td>
-                <td><?= $bigInt; ?></td>
-                <td>849344215841909609199585950172954190544722304140846169088527053130n</td>
-            </tr>
-            <tr>
-                <td>.toString(2)</td>
-                <td><?= $binary; ?></td>
-                <td>1000000100001010010000110100000000001010001100010000110010000000000001000000000010010000100000000000001000000010000101000010000000001010000000101000110001100000000000100000000010000000001000000000010000100011000101001010</td>
-            </tr>
-            <tr>
-                <td>_strMul</td>
-                <td><?= $strMul; ?></td>
-                <td>000000000000000000000000000000000000</td>
-            </tr>
-            <tr>
-                <td>Final</td>
-                <td><?= $final; ?></td>
-                <td>0000000000000000000000000000000000001000000100001010010000110100000000001010001100010000110010000000000001000000000010010000100000000000001000000010000101000010000000001010000000101000110001100000000000100000000010000000001000000000010000100011000101001010</td>
-            </tr>
-        </table>
-
-<?php
+        $output['traits'] = $geneData->getTraits();
+        $output['dominantTraits'] = $geneData->getDominantGenes();
+        $output['r1Traits'] = $geneData->getR1Genes();
+        $output['r2Traits'] = $geneData->getR2Genes();
+        $output['getAllGenes'] = $geneData->getAllGenes();
+        $output['getDominantClassPurity'] = $geneData->getDominantClassPurity();
+        $output['getR1ClassPurity'] = $geneData->getR1ClassPurity();
+        $output['getR2ClassPurity'] = $geneData->getR2ClassPurity();
+        $output['getOverallClassPurity'] = $geneData->getOverallClassPurity();
+        $output['getDominantClasses'] = $geneData->getDominantClasses();
+        $output['countDominantClasses'] = $geneData->countDominantClasses();
+        $output['getR1Classes'] = $geneData->getR1Classes();
+        $output['countR1Classes'] = $geneData->countR1Classes();
+        $output['getR2Classes'] = $geneData->getR2Classes();
+        $output['countR2Classes'] = $geneData->countR2Classes();
+        $output['getQuality'] = $geneData->getQuality();
+        $output['getPureness'] = $geneData->getPureness();
+        $output['getGenePassingRates'] = $geneData->getGenePassingRates();
 
 
         return new Response($this->serializer->serialize($output, 'json'));

@@ -20,8 +20,10 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Axie;
+use App\Entity\AxieRawData;
 use App\Entity\CrawlAxieResult;
 use App\Entity\MarketplaceCrawl;
+use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,18 +55,30 @@ class CrawlMarketplaceWatchlistService
      * @var AxieRepository
      */
     private $axieRepo;
+    /**
+     * @var AxieRawDataRepository
+     */
+    private $axieRawDataRepo;
 
-    public function __construct(EntityManagerInterface $em, MarketplaceWatchlistRepository $watchlistRepo, AxieRepository $axieRepo)
+    public function __construct(
+        EntityManagerInterface $em,
+        MarketplaceWatchlistRepository $watchlistRepo,
+        AxieRepository $axieRepo,
+        AxieRawDataRepository $axieRawDataRepo
+    )
     {
         $this->em = $em;
         $this->watchlistRepo = $watchlistRepo;
         $this->axieRepo = $axieRepo;
+        $this->axieRawDataRepo = $axieRawDataRepo;
     }
 
     public function crawlAll() {
 
         $urlsAndPayloads = [];
         $crawlSessionUlid = new Ulid();
+        $output = [];
+        $output['axiesAdded'] = [];
 
         $watchlists = $this->watchlistRepo->findAll();
 //        $watchlists = [$this->watchlistRepo->find(1)];
@@ -141,7 +155,17 @@ class CrawlMarketplaceWatchlistService
                     if (empty($axieEntity->getImageUrl()) && ! empty($axie['image'])) {
                         $axieEntity->setImageUrl(trim($axie['image']));
                     }
-                    $axieEntity->setRawData(json_encode($axie));
+
+                    $output['axiesAdded'][] = (int) $axie['id'];
+
+                    $rawDataEntity = $this->axieRawDataRepo->find($axieEntity->getId());
+                    if (null === $rawDataEntity) {
+                        $rawDataEntity = new AxieRawData($axieEntity);
+                    }
+                    $rawDataEntity->setRawDataBrief(json_encode($axie));
+                    $this->em->persist($rawDataEntity);
+
+                    $axieEntity->setAxieRawData($rawDataEntity);
                     $this->em->persist($axieEntity);
 
                     $axieResult = new CrawlAxieResult();
@@ -243,6 +267,8 @@ class CrawlMarketplaceWatchlistService
         }
 
         $this->em->flush();
+
+        return $output;
 
     }
 
