@@ -35,6 +35,11 @@ class MarketplaceWatchlist
      */
     private $crawls;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $orderWeight;
+
     public function __construct() {
         $this->crawls = new ArrayCollection();
     }
@@ -94,6 +99,18 @@ class MarketplaceWatchlist
                 $crawl->setMarketplaceWatchlist(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOrderWeight(): ?int
+    {
+        return $this->orderWeight;
+    }
+
+    public function setOrderWeight(?int $orderWeight): self
+    {
+        $this->orderWeight = $orderWeight;
 
         return $this;
     }

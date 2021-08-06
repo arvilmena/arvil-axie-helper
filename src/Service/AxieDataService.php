@@ -103,15 +103,8 @@ class AxieDataService
         }
         if ( empty($specificAxieIds) ) {
             $toProcess = $this->axieRepo->findBy(['isProcessed' => false], ['id' => 'ASC']);
-//        $toProcess = [
-//            $this->axieRepo->find(214231),
-//            $this->axieRepo->find(233473),
-//            $this->axieRepo->find(244355),
-//            $this->axieRepo->find(249902),
-//            $this->axieRepo->find(3120080),
-//        ];
         } else {
-            $this->log('Starting Axie Data population for Ids: ' . implode(',', $specificAxieIds));
+            $this->log('Starting Axie Data population for ' . count($specificAxieIds) . ' Ids: ' . implode(',', $specificAxieIds));
             $qb = $this->axieRepo->createQueryBuilder('a')
                 ->where('a.isProcessed = false');
 
@@ -210,6 +203,7 @@ class AxieDataService
                             ->setQuality($axieGenes->getQuality())
                         ;
                         $this->em->persist($axieEntity);
+                        $this->em->flush();
 
                         $rawDataEntity = $this->axieRawDataRepo->find($axieEntity);
                         if (null === $rawDataEntity) {
@@ -217,6 +211,7 @@ class AxieDataService
                         }
                         $rawDataEntity->setRawData(json_encode($axieData));
                         $this->em->persist($rawDataEntity);
+                        $this->em->flush();
 
                         $axieEntity->getParts()->clear();
                         foreach($axieData['parts'] as $part) {
@@ -227,29 +222,36 @@ class AxieDataService
                                     ->setName($part['name'])
                                     ->setType(strtolower($part['type']))
                                     ->setClass(strtolower($part['class']));
-
-                                if ( !empty($part['abilities']) ) {
-                                    $ability = $part['abilities'][0];
-                                    $cardAbilityEntity = $this->axieCardAbilityRepo->find($ability['id']);
-                                    if (null === $cardAbilityEntity) {
-                                        $cardAbilityEntity = new AxieCardAbility($ability['id']);
-                                        $cardAbilityEntity
-                                            ->setName($ability['name'])
-                                            ->setAttack($ability['attack'])
-                                            ->setDefence($ability['defense'])
-                                            ->setEnergy($ability['energy'])
-                                            ->setDescription($ability['description'])
-                                            ->setBackgroundUrl($ability['backgroundUrl'])
-                                            ;
-                                        $this->em->persist($cardAbilityEntity);
-                                        $partEntity->setCardAbility($cardAbilityEntity);
-                                    }
-                                }
                                 $this->em->persist($partEntity);
+                                $this->em->flush();
                             }
+
+                            if ( !empty($part['abilities'][0]) ) {
+                                $ability = $part['abilities'][0];
+                                $cardAbilityEntity = $this->axieCardAbilityRepo->find($ability['id']);
+                                if (null === $cardAbilityEntity) {
+                                    $this->log('> not found, adding card ability: '. $ability['id'] . ' for axie: ' . $axieEntity->getId());
+                                    $cardAbilityEntity = new AxieCardAbility($ability['id']);
+                                    $cardAbilityEntity
+                                        ->setName($ability['name'])
+                                        ->setAttack($ability['attack'])
+                                        ->setDefence($ability['defense'])
+                                        ->setEnergy($ability['energy'])
+                                        ->setDescription($ability['description'])
+                                        ->setBackgroundUrl($ability['backgroundUrl'])
+                                        ->setAxiePart($partEntity)
+                                    ;
+                                    $partEntity->setCardAbility($cardAbilityEntity);
+                                    $this->em->persist($cardAbilityEntity);
+                                    $this->em->persist($partEntity);
+                                    $this->em->flush();
+                                }
+                            }
+
                             $axieEntity->addPart($partEntity);
                         }
                         $this->em->persist($axieEntity);
+                        $this->em->flush();
 
                         // genes
                         $axieEntity->getGenes()->clear();
@@ -271,6 +273,7 @@ class AxieDataService
                                         ->setClass(strtolower($gene['class']))
                                     ;
                                     $this->em->persist($partEntity);
+                                    $this->em->flush();
                                 }
 
                                 $axieGeneEntity = new AxieGenes();
@@ -287,9 +290,11 @@ class AxieDataService
 
                                 $this->em->persist($axieEntity);
                                 $this->em->persist($axieGeneEntity);
+                                $this->em->flush();
                             }
                         }
                         $this->em->persist($axieEntity);
+                        $this->em->flush();
 
                         // Gene passing rate
                         $axieEntity->getGenePassingRates()->clear();
@@ -306,7 +311,12 @@ class AxieDataService
                                 ->setPart($partEntity)
                                 ->setPassingRate($gene['passingRate'])
                             ;
+                            $cardAbilityEntity = $partEntity->getCardAbility();
+                            if (null !== $cardAbilityEntity) {
+                                $genePassingRateEntity->setAxieCardAbility($cardAbilityEntity);
+                            }
                             $this->em->persist($genePassingRateEntity);
+                            $this->em->flush();
                         }
 
                         $axieEntity->setIsProcessed(true);
@@ -320,8 +330,8 @@ class AxieDataService
                 }
             } # foreach ($client->stream($responses, 10) as $response => $chunk) {
 
-            $this->log('sleeping for 6 secs');
-            sleep(6);
+            $this->log('sleeping for 3 secs');
+            sleep(3);
         } # foreach($_toProcess as $_tp)
 
     }

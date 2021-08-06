@@ -17,22 +17,22 @@ class AxieCardAbility
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $name;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $attack;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $defence;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $energy;
 
@@ -47,7 +47,7 @@ class AxieCardAbility
     private $backgroundUrl;
 
     /**
-     * @ORM\OneToOne(targetEntity=AxiePart::class, mappedBy="cardAbility", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=AxiePart::class, mappedBy="cardAbility")
      */
     private $axiePart;
 

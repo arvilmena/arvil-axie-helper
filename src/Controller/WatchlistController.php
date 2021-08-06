@@ -64,7 +64,7 @@ class WatchlistController extends AbstractController
         /**
          * @var $watchlists MarketplaceWatchlist[]
          */
-        $watchlists = $this->watchlistRepo->findAll();
+        $watchlists = $this->watchlistRepo->findBy([], ['orderWeight' => 'DESC']);
 //        $watchlists = [$this->watchlistRepo->find(12)];
         foreach($watchlists as $watchlist) {
             $_data = [

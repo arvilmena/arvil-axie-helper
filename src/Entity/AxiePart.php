@@ -34,7 +34,7 @@ class AxiePart
     private $class;
 
     /**
-     * @ORM\OneToOne(targetEntity=AxieCardAbility::class, inversedBy="axiePart", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=AxieCardAbility::class, inversedBy="axiePart")
      */
     private $cardAbility;
 

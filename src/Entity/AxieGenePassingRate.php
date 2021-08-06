@@ -36,6 +36,11 @@ class AxieGenePassingRate
      */
     private $part;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=AxieCardAbility::class)
+     */
+    private $axieCardAbility;
+
     public function __construct()
     {
     }
@@ -89,6 +94,18 @@ class AxieGenePassingRate
     public function setPart(?AxiePart $part): self
     {
         $this->part = $part;
+
+        return $this;
+    }
+
+    public function getAxieCardAbility(): ?AxieCardAbility
+    {
+        return $this->axieCardAbility;
+    }
+
+    public function setAxieCardAbility(?AxieCardAbility $axieCardAbility): self
+    {
+        $this->axieCardAbility = $axieCardAbility;
 
         return $this;
     }
