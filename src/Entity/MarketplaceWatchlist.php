@@ -40,6 +40,11 @@ class MarketplaceWatchlist
      */
     private $orderWeight;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $shouldCrawlMorePage;
+
     public function __construct() {
         $this->crawls = new ArrayCollection();
     }
@@ -111,6 +116,18 @@ class MarketplaceWatchlist
     public function setOrderWeight(?int $orderWeight): self
     {
         $this->orderWeight = $orderWeight;
+
+        return $this;
+    }
+
+    public function getShouldCrawlMorePage(): ?bool
+    {
+        return $this->shouldCrawlMorePage;
+    }
+
+    public function setShouldCrawlMorePage(?bool $shouldCrawlMorePage): self
+    {
+        $this->shouldCrawlMorePage = $shouldCrawlMorePage;
 
         return $this;
     }

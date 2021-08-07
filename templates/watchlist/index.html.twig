@@ -72,7 +72,7 @@
                                                     '$lowestPastMonth',
                                                     '$lowestPast6Months'
                                                 ] %}
-                                                    {% if node in watchlist|keys %}
+                                                    {% if node in watchlist|keys and watchlist[ node ] != null %}
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
                                                             <td>
@@ -96,7 +96,7 @@
                                                     '$lowestAveragePastMonth',
                                                     '$lowestAveragePast6Months',
                                                 ] %}
-                                                    {% if node in watchlist|keys %}
+                                                    {% if node in watchlist|keys and watchlist[ node ] != null %}
                                                         <tr>
                                                             <th scope="row">{{ node }}</th>
                                                             <td><a href="{{ path('marketplace_crawl_id', {id: watchlist[ node ].getId() }) }}">{{ watchlist[ node ].getId() }}</a></td>

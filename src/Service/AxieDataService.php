@@ -30,6 +30,7 @@ use App\Repository\AxieGenesRepository;
 use App\Repository\AxiePartRepository;
 use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
+use App\Repository\CrawlAxieResultRepository;
 use App\Util\AxieGeneUtil;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -73,6 +74,10 @@ class AxieDataService
      * @var AxieRawDataRepository
      */
     private $axieRawDataRepo;
+    /**
+     * @var CrawlAxieResultRepository
+     */
+    private $crawlAxieResultRepo;
 
     public function __construct(
         AxieRepository $axieRepo,
@@ -80,6 +85,7 @@ class AxieDataService
         AxiePartRepository $axiePartRepo,
         AxieCardAbilityRepository $axieCardAbilityRepo,
         AxieRawDataRepository $axieRawDataRepo,
+        CrawlAxieResultRepository $crawlAxieResultRepo,
         EntityManagerInterface $em
     )
     {
@@ -89,6 +95,7 @@ class AxieDataService
         $this->axieRepo = $axieRepo;
         $this->axieRawDataRepo = $axieRawDataRepo;
         $this->em = $em;
+        $this->crawlAxieResultRepo = $crawlAxieResultRepo;
     }
 
     public function log($msg, $type = 'note') {
@@ -137,7 +144,10 @@ class AxieDataService
                         'Accept' => 'application/json',
                         'Content-Type' => 'application/json'
                     ],
-                    'body' => $body
+                    'body' => $body,
+                    'user_data' => [
+                        'axieId' => $id
+                    ]
                 ]);
             } # foreach($_tp as $axieEntity) {
 
@@ -145,26 +155,26 @@ class AxieDataService
                 try {
                     if ($chunk->isTimeout()) {
                         // $response staled for more than 1.5 seconds
-                        $this->log('> error: timed out', 'error');
+                        $this->log('> error: timed out. axie id#: ' . $response->getInfo('user_data')['axieId'], 'error');
                         $response->cancel();
                     } elseif ($chunk->isFirst()) {
                         // headers of $response just arrived
                         // $response->getHeaders() is now a non-blocking call
                         if ( 200 !== $response->getStatusCode() ) {
-                            $this->log('> error, status code: ' . $response->getStatusCode(), 'error');
+                            $this->log('> error, status code: ' . $response->getStatusCode() . ' axie id#: ' . $response->getInfo('user_data')['axieId'], 'error');
                             $response->cancel();
                         }
                     } elseif ($chunk->isLast()) {
                         $content = $response->getContent(false);
                         $content = json_decode($content, true);
                         if ( empty($content['data']['axie']) ) {
-                            $this->log('> error, cannot determine structure of response', 'error');
+                            $this->log('> error, cannot determine structure of response'. ' axie id#: ' . $response->getInfo('user_data')['axieId'], 'error');
                             continue;
                         }
 
                         $axieData = $content['data']['axie'];
                         if ( empty($axieData['stage']) || 4 !== $axieData['stage'] ) {
-                            $this->log('> error, Axie is not yet adult.');
+                            $this->log('> error, Axie is not yet adult.' . ' axie id#: ' . $response->getInfo('user_data')['axieId'], 'error');
                             continue;
                         }
 
@@ -175,7 +185,7 @@ class AxieDataService
                             || empty($axieData['parts'])
                             || empty($axieData['stats'])
                         ) {
-                            $this->log('> error, data doesnt contain required fields.', 'error');
+                            $this->log('> error, data doesnt contain required fields.' . ' axie id#: ' . $response->getInfo('user_data')['axieId'], 'error');
                             continue;
                         }
 
@@ -184,7 +194,7 @@ class AxieDataService
                          */
                         $axieEntity = $this->axieRepo->find($axieData['id']);
                         if (null === $axieEntity) {
-                            $this->log('> error, for some reason, we cannot find the axie in our db.', 'error');
+                            $this->log('> error, for some reason, we cannot find the axie in our db.' . ' axie id#: ' . $response->getInfo('user_data')['axieId'] , 'error');
                         }
 
                         $axieGenes = new AxieGeneUtil(trim($axieData['genes']));
@@ -321,6 +331,47 @@ class AxieDataService
 
                         $axieEntity->setIsProcessed(true);
                         $this->em->persist($axieEntity);
+                        $this->em->flush();
+
+                        // calculate avgAttackPerCard / avgDefencePerCard
+                        if ( null === $axieEntity->getAvgAttackPerCard() || null === $axieEntity->getAvgDefencePerCard() ) {
+                            $dominantGenes = $axieGenes->getDominantGenes();
+                            $numberOfCardAbilities = 0;
+                            $avgAttackPerCard = 0;
+                            $avgDefencePerCard = 0;
+                            foreach($dominantGenes as $dominantGene) {
+                                $partEntity = $this->axiePartRepo->find($dominantGene['partId']);
+                                if (null === $partEntity) {
+                                    $this->log('error, cannot find partEntity? but we already populated all parts at this stage 2', 'error');
+                                }
+                                $cardAbilityEntity = $partEntity->getCardAbility();
+                                if (null === $cardAbilityEntity) {
+                                    continue;
+                                }
+                                $numberOfCardAbilities++;
+                                $avgAttackPerCard = $avgAttackPerCard + $cardAbilityEntity->getAttack();
+                                $avgDefencePerCard = $avgDefencePerCard + $cardAbilityEntity->getDefence();
+                            }
+                            if ( $numberOfCardAbilities !== 4 ) {
+                                $this->log('error, for some reason, axie: ' . $axieEntity->getId() . ' has ' . $numberOfCardAbilities . ' ability cards.', 'error');
+                            } else {
+                                $avgAttackPerCard = $avgAttackPerCard / $numberOfCardAbilities;
+                                $avgDefencePerCard = $avgDefencePerCard / $numberOfCardAbilities;
+                                $axieEntity->setAvgAttackPerCard($avgAttackPerCard);
+                                $axieEntity->setAvgDefencePerCard($avgDefencePerCard);
+                                $this->em->persist($axieEntity);
+                                $this->em->flush();
+
+                                // update the last crawl data as well.
+                                $lastCrawlResult = $this->crawlAxieResultRepo->findOneBy(['axie' => $axieEntity], ['crawlDate' => 'DESC']);
+                                if (null !== $lastCrawlResult && $lastCrawlResult->getPriceUsd() > 0) {
+                                    $axieEntity->setAttackPerUsd($avgAttackPerCard / $lastCrawlResult->getPriceUsd());
+                                    $axieEntity->setDefencePerUsd($avgDefencePerCard / $lastCrawlResult->getPriceUsd());
+                                    $this->em->persist($axieEntity);
+                                    $this->em->flush();
+                                }
+                            }
+                        }
 
                         $this->em->flush();
                     } # } elseif ($chunk->isLast())

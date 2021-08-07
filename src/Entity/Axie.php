@@ -118,6 +118,26 @@ class Axie
      */
     private $genePassingRates;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $avgAttackPerCard;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $avgDefencePerCard;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $attackPerUsd;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $defencePerUsd;
+
     public function __construct(int $id) {
         $this->id = $id;
         $this->url = 'https://marketplace.axieinfinity.com/axie/' . $id;
@@ -427,6 +447,54 @@ class Axie
                 $genePassingRate->setAxie(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAvgAttackPerCard(): ?float
+    {
+        return $this->avgAttackPerCard;
+    }
+
+    public function setAvgAttackPerCard(?float $avgAttackPerCard): self
+    {
+        $this->avgAttackPerCard = $avgAttackPerCard;
+
+        return $this;
+    }
+
+    public function getAvgDefencePerCard(): ?float
+    {
+        return $this->avgDefencePerCard;
+    }
+
+    public function setAvgDefencePerCard(?float $avgDefencePerCard): self
+    {
+        $this->avgDefencePerCard = $avgDefencePerCard;
+
+        return $this;
+    }
+
+    public function getAttackPerUsd(): ?float
+    {
+        return $this->attackPerUsd;
+    }
+
+    public function setAttackPerUsd(?float $attackPerUsd): self
+    {
+        $this->attackPerUsd = $attackPerUsd;
+
+        return $this;
+    }
+
+    public function getDefencePerUsd(): ?float
+    {
+        return $this->defencePerUsd;
+    }
+
+    public function setDefencePerUsd(?float $defencePerUsd): self
+    {
+        $this->defencePerUsd = $defencePerUsd;
 
         return $this;
     }
