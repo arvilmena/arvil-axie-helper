@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\AxieGenes;
 use App\Entity\MarketplaceCrawl;
+use App\Repository\AxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Service\CrawlMarketplaceWatchlistService;
 use App\Util\AxieGeneUtil;
@@ -56,6 +58,45 @@ class HomepageController extends AbstractController
         return $this->render('homepage/index.html.twig', [
             'controller_name' => 'HomepageController',
         ]);
+    }
+
+    /**
+     * @Route("/test2", name="test2")
+     */
+    public function test2(AxieRepository $axieRepository) : Response {
+        $output = [];
+
+        $axieEntity = $axieRepository->find(368007);
+
+        $dominantGenes = $axieEntity->getGenes()->filter(function(AxieGenes $ag) {
+            return trim(strtolower((string) $ag->getGeneType())) === 'd';
+        });
+
+        var_dump($dominantGenes->toArray());
+
+        $numberOfCardAbilities= 0;
+        $avgAttackPerCard = 0;
+        $avgDefencePerCard = 0;
+        foreach($dominantGenes as $dominantGene) {
+            $partEntity = $dominantGene->getPart();
+            $cardAbilityEntity = $partEntity->getCardAbility();
+            if (null === $cardAbilityEntity) {
+                continue;
+            }
+            $numberOfCardAbilities++;
+
+            $cardAttack = $cardAbilityEntity->getAttack();
+            if ( $cardAbilityEntity->getId() === 'beast-back-12' ) { // Furball, attacks 3 times
+                $cardAttack = 120;
+            }
+            $avgAttackPerCard = $avgAttackPerCard + $cardAttack;
+
+            $avgDefencePerCard = $avgDefencePerCard + $cardAbilityEntity->getDefence();
+        }
+        var_dump('$numberOfCardAbilities',$numberOfCardAbilities);
+        $output['$numberOfCardAbilities'] = $numberOfCardAbilities;
+
+        return $this->json($output);
     }
 
     /**

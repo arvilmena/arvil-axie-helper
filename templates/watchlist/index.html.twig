@@ -123,6 +123,13 @@
                                                                             {% endif %}
                                                                         </div>
                                                                         <div class="h-0 pb-24 flex flex-row flex-wrap justify-center overflow-hidden items-baseline">
+                                                                            <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
+                                                                                Freaks Quality: {{ axie.getAxie().getQuality()|number_format(2) }}% <br />
+                                                                                Dominant Class Purity: {{ axie.getAxie().getDominantClassPurity()|number_format(2) }}% <br />
+                                                                                R1 Class Purity: {{ axie.getAxie().getR1ClassPurity()|number_format(2) }}% <br />
+                                                                                R2 Class Purity: {{ axie.getAxie().getR2ClassPurity()|number_format(2) }}% <br />
+                                                                                Breed Count: {{ axie.getBreedCount() }}/7 <br />
+                                                                            </small>
                                                                             <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>
                                                                             <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
                                                                             <a href="{{ axie.getAxie().getUrl() }}" target="_blank">

@@ -78,6 +78,10 @@ class AxieDataService
      * @var CrawlAxieResultRepository
      */
     private $crawlAxieResultRepo;
+    /**
+     * @var AxieCalculateStatService
+     */
+    private $axieCalculateStatService;
 
     public function __construct(
         AxieRepository $axieRepo,
@@ -86,6 +90,7 @@ class AxieDataService
         AxieCardAbilityRepository $axieCardAbilityRepo,
         AxieRawDataRepository $axieRawDataRepo,
         CrawlAxieResultRepository $crawlAxieResultRepo,
+        AxieCalculateStatService $axieCalculateStatService,
         EntityManagerInterface $em
     )
     {
@@ -96,6 +101,7 @@ class AxieDataService
         $this->axieRawDataRepo = $axieRawDataRepo;
         $this->em = $em;
         $this->crawlAxieResultRepo = $crawlAxieResultRepo;
+        $this->axieCalculateStatService = $axieCalculateStatService;
     }
 
     public function log($msg, $type = 'note') {
@@ -223,7 +229,12 @@ class AxieDataService
                         $this->em->persist($rawDataEntity);
                         $this->em->flush();
 
-                        $axieEntity->getParts()->clear();
+                        $axieParts = $axieEntity->getParts();
+                        $shouldPopulateAxieParts = (count($axieParts) !== 6);
+                        if ($shouldPopulateAxieParts) {
+                            $axieParts->clear();
+                        }
+
                         foreach($axieData['parts'] as $part) {
                             $partEntity = $this->axiePartRepo->find($part['id']);
                             if (null === $partEntity) {
@@ -258,75 +269,85 @@ class AxieDataService
                                 }
                             }
 
-                            $axieEntity->addPart($partEntity);
+                            if ($shouldPopulateAxieParts) {
+                                $axieEntity->addPart($partEntity);
+                            }
                         }
-                        $this->em->persist($axieEntity);
-                        $this->em->flush();
+                        if ($shouldPopulateAxieParts) {
+                            $this->em->persist($axieEntity);
+                            $this->em->flush();
+                        }
 
-                        // genes
-                        $axieEntity->getGenes()->clear();
-                        foreach(
-                            [
-                                ['geneType' => 'd', 'method' => 'getDominantGenes'],
-                                ['geneType' => 'r1', 'method' => 'getR1Genes'],
-                                ['geneType' => 'r2', 'method' => 'getR2Genes'],
-                            ] as $geneTypeMethod
-                        ) {
-                            $genes = $axieGenes->{$geneTypeMethod['method']}();
-                            foreach($genes as $gene) {
-                                $partEntity = $this->axiePartRepo->find($gene['partId']);
-                                if (null === $partEntity) {
-                                    $partEntity = new AxiePart($gene['partId']);
-                                    $partEntity
-                                        ->setName($gene['name'])
-                                        ->setType(strtolower($gene['type']))
-                                        ->setClass(strtolower($gene['class']))
+                        // genes and gene passing rate
+                        // if we had to repopulate the parts, then we have to repopulate the genes as well
+                        if ($shouldPopulateAxieParts) {
+                            $axieEntity->getGenes()->clear();
+                            foreach(
+                                [
+                                    ['geneType' => 'd', 'method' => 'getDominantGenes'],
+                                    ['geneType' => 'r1', 'method' => 'getR1Genes'],
+                                    ['geneType' => 'r2', 'method' => 'getR2Genes'],
+                                ] as $geneTypeMethod
+                            ) {
+                                $genes = $axieGenes->{$geneTypeMethod['method']}();
+                                foreach($genes as $gene) {
+                                    $partEntity = $this->axiePartRepo->find($gene['partId']);
+                                    if (null === $partEntity) {
+                                        $partEntity = new AxiePart($gene['partId']);
+                                        $partEntity
+                                            ->setName($gene['name'])
+                                            ->setType(strtolower($gene['type']))
+                                            ->setClass(strtolower($gene['class']))
+                                        ;
+                                        $this->em->persist($partEntity);
+                                        $this->em->flush();
+                                    }
+
+                                    $axieGeneEntity = new AxieGenes();
+                                    $axieGeneEntity
+                                        ->setAxie($axieEntity)
+                                        ->setPart($partEntity)
+                                        ->setGeneType(strtolower($geneTypeMethod['geneType']))
                                     ;
-                                    $this->em->persist($partEntity);
+
+                                    $cardAbilityEntity = $partEntity->getCardAbility();
+                                    if (null !== $cardAbilityEntity) {
+                                        $axieGeneEntity->setCardAbility($cardAbilityEntity);
+                                    }
+
+                                    $this->em->persist($axieGeneEntity);
+
+                                    $axieEntity->addGene($axieGeneEntity);
+                                    $this->em->persist($axieEntity);
+
                                     $this->em->flush();
                                 }
+                            }
+                            $this->em->persist($axieEntity);
+                            $this->em->flush();
 
-                                $axieGeneEntity = new AxieGenes();
-                                $axieGeneEntity
+                            // Gene passing rate
+                            $axieEntity->getGenePassingRates()->clear();
+                            foreach($axieGenes->getGenePassingRates() as $gene) {
+                                $partEntity = $this->axiePartRepo->find($gene['partId']);
+                                if (null === $partEntity) {
+                                    $this->log('error, cannot find partEntity? but we already populated all parts at this stage', 'error');
+                                    $this->em->flush();
+                                    return;
+                                }
+                                $genePassingRateEntity = new AxieGenePassingRate();
+                                $genePassingRateEntity
                                     ->setAxie($axieEntity)
                                     ->setPart($partEntity)
-                                    ->setGeneType(strtolower($geneTypeMethod['geneType']))
+                                    ->setPassingRate($gene['passingRate'])
                                 ;
-
                                 $cardAbilityEntity = $partEntity->getCardAbility();
                                 if (null !== $cardAbilityEntity) {
-                                    $axieGeneEntity->setCardAbility($cardAbilityEntity);
+                                    $genePassingRateEntity->setAxieCardAbility($cardAbilityEntity);
                                 }
-
-                                $this->em->persist($axieEntity);
-                                $this->em->persist($axieGeneEntity);
+                                $this->em->persist($genePassingRateEntity);
                                 $this->em->flush();
                             }
-                        }
-                        $this->em->persist($axieEntity);
-                        $this->em->flush();
-
-                        // Gene passing rate
-                        $axieEntity->getGenePassingRates()->clear();
-                        foreach($axieGenes->getGenePassingRates() as $gene) {
-                            $partEntity = $this->axiePartRepo->find($gene['partId']);
-                            if (null === $partEntity) {
-                                $this->log('error, cannot find partEntity? but we already populated all parts at this stage', 'error');
-                                $this->em->flush();
-                                return;
-                            }
-                            $genePassingRateEntity = new AxieGenePassingRate();
-                            $genePassingRateEntity
-                                ->setAxie($axieEntity)
-                                ->setPart($partEntity)
-                                ->setPassingRate($gene['passingRate'])
-                            ;
-                            $cardAbilityEntity = $partEntity->getCardAbility();
-                            if (null !== $cardAbilityEntity) {
-                                $genePassingRateEntity->setAxieCardAbility($cardAbilityEntity);
-                            }
-                            $this->em->persist($genePassingRateEntity);
-                            $this->em->flush();
                         }
 
                         $axieEntity->setIsProcessed(true);
@@ -335,38 +356,13 @@ class AxieDataService
 
                         // calculate avgAttackPerCard / avgDefencePerCard
                         if ( null === $axieEntity->getAvgAttackPerCard() || null === $axieEntity->getAvgDefencePerCard() ) {
-                            $dominantGenes = $axieGenes->getDominantGenes();
-                            $numberOfCardAbilities = 0;
-                            $avgAttackPerCard = 0;
-                            $avgDefencePerCard = 0;
-                            foreach($dominantGenes as $dominantGene) {
-                                $partEntity = $this->axiePartRepo->find($dominantGene['partId']);
-                                if (null === $partEntity) {
-                                    $this->log('error, cannot find partEntity? but we already populated all parts at this stage 2', 'error');
-                                }
-                                $cardAbilityEntity = $partEntity->getCardAbility();
-                                if (null === $cardAbilityEntity) {
-                                    continue;
-                                }
-                                $numberOfCardAbilities++;
-                                $avgAttackPerCard = $avgAttackPerCard + $cardAbilityEntity->getAttack();
-                                $avgDefencePerCard = $avgDefencePerCard + $cardAbilityEntity->getDefence();
-                            }
-                            if ( $numberOfCardAbilities !== 4 ) {
-                                $this->log('error, for some reason, axie: ' . $axieEntity->getId() . ' has ' . $numberOfCardAbilities . ' ability cards.', 'error');
-                            } else {
-                                $avgAttackPerCard = $avgAttackPerCard / $numberOfCardAbilities;
-                                $avgDefencePerCard = $avgDefencePerCard / $numberOfCardAbilities;
-                                $axieEntity->setAvgAttackPerCard($avgAttackPerCard);
-                                $axieEntity->setAvgDefencePerCard($avgDefencePerCard);
-                                $this->em->persist($axieEntity);
-                                $this->em->flush();
-
-                                // update the last crawl data as well.
+                            // update the last crawl data as well.
+                            $calculatedStat = $this->axieCalculateStatService->recalculate($axieEntity, $this->io);
+                            if (!empty($calculatedStat)) {
                                 $lastCrawlResult = $this->crawlAxieResultRepo->findOneBy(['axie' => $axieEntity], ['crawlDate' => 'DESC']);
                                 if (null !== $lastCrawlResult && $lastCrawlResult->getPriceUsd() > 0) {
-                                    $axieEntity->setAttackPerUsd($avgAttackPerCard / $lastCrawlResult->getPriceUsd());
-                                    $axieEntity->setDefencePerUsd($avgDefencePerCard / $lastCrawlResult->getPriceUsd());
+                                    $axieEntity->setAttackPerUsd($calculatedStat['$avgAttackPerCard'] / $lastCrawlResult->getPriceUsd());
+                                    $axieEntity->setDefencePerUsd($calculatedStat['$avgDefencePerCard'] / $lastCrawlResult->getPriceUsd());
                                     $this->em->persist($axieEntity);
                                     $this->em->flush();
                                 }

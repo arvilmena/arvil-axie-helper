@@ -43,7 +43,7 @@ class CrawlCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $output = $this->crawlMarketplaceWatchlistService->crawlAll();
+        $output = $this->crawlMarketplaceWatchlistService->crawlAll(null, $io);
 
         if ( ! empty($output['axiesAdded']) ) {
             $this->axieDataService->processAllUnprocessed($io, $output['axiesAdded']);

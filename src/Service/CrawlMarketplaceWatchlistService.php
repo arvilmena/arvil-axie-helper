@@ -51,8 +51,8 @@ class CrawlMarketplaceWatchlistService
      */
     private $watchlistRepo;
 
-    const NUMBER_OF_RESULTS = 14;
-    const NUMBER_OF_RESULTS_FOR_PAGINATED = 30;
+    const NUMBER_OF_RESULTS = 24;
+    const NUMBER_OF_RESULTS_FOR_PAGINATED = 40;
     /**
      * @var AxieRepository
      */
@@ -89,14 +89,20 @@ class CrawlMarketplaceWatchlistService
             $this->io = $io;
         }
 
+        $watchlistId = (int) $response->getInfo('user_data')['watchlistId'];
+        $watchlist = $this->watchlistRepo->find($watchlistId);
+
         $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now', new \DateTimeZone('UTC')));
         $crawl
-            ->setCrawlSessionUlid($crawlSessionUlid);
+            ->setCrawlSessionUlid($crawlSessionUlid)
+            ->setMarketplaceWatchlist($watchlist)
+        ;
 
         try {
             $statusCode = $response->getStatusCode();
         } catch (TransportExceptionInterface $e) {
             $this->em->persist($crawl);
+            $this->em->flush();
             return $output;
         }
 
@@ -104,16 +110,18 @@ class CrawlMarketplaceWatchlistService
 
         if ($statusCode !== 200) {
             $this->em->persist($crawl);
+            $this->em->flush();
+            $this->log('processing response for watchlist: ' . $watchlist->getName());
             return $output;
         }
 
         $content = $response->toArray();
 
-        $watchlist = $this->watchlistRepo->find((int) $response->getInfo('user_data')['watchlistId']);
         $crawl
             ->setResponse(json_encode($content))
-            ->setMarketplaceWatchlist($watchlist)
         ;
+        $this->em->persist($crawl);
+        $this->em->flush();
 
         if ( ! empty($content['errors']) || empty($content['data']['axies']) || 1 > (int) $content['data']['axies']['total']) {
             $crawl->setIsValid(false);
@@ -153,6 +161,10 @@ class CrawlMarketplaceWatchlistService
                 $axieResult
                     ->setCrawl($crawl)
                     ->setAxie($axieEntity);
+                $this->em->persist($axieResult);
+                $this->em->persist($axieEntity);
+                $this->em->persist($crawl);
+                $this->em->flush();
 
                 if (isset($axie['breedCount'])) {
                     $axieResult->setBreedCount((int) $axie['breedCount']);
@@ -173,9 +185,11 @@ class CrawlMarketplaceWatchlistService
                     continue;
                 }
 
+                $ethDivisor = 1000000000000000000;
                 $axieResult
-                    ->setPriceEth(round($axie['auction']['currentPrice'] / 100000000000000000, 4))
-                    ->setPriceUsd((float) $axie['auction']['currentPriceUSD']);
+                    ->setPriceEth(round($axie['auction']['currentPrice'] / $ethDivisor, 4))
+                    ->setPriceUsd((float) $axie['auction']['currentPriceUSD'])
+                ;
 
                 if ( $axieEntity->getAvgAttackPerCard() > 0 && $axieEntity->getAvgDefencePerCard() > 0 ) {
                     $axieEntity
@@ -187,10 +201,10 @@ class CrawlMarketplaceWatchlistService
                 }
 
                 if ($axie['auction']['currentPrice'] < $lowestPriceEth) {
-                    $lowestPriceEth = $axie['auction']['currentPrice'] / 100000000000000000;
+                    $lowestPriceEth = $axie['auction']['currentPrice'] / $ethDivisor;
                 }
                 if ($axie['auction']['currentPrice'] > $highestPriceEth) {
-                    $highestPriceEth = $axie['auction']['currentPrice'] / 100000000000000000;
+                    $highestPriceEth = $axie['auction']['currentPrice'] / $ethDivisor;
                 }
                 if ($axie['auction']['currentPriceUSD'] < $lowestPriceUsd) {
                     $lowestPriceUsd = (float) $axie['auction']['currentPriceUSD'];
@@ -200,7 +214,7 @@ class CrawlMarketplaceWatchlistService
                 }
                 // Don't include the first one, they can be noise sometimes
                 if ($count > 0 && $totalAxieResult > 1) {
-                    $sumEth = $sumEth + $axie['auction']['currentPrice'] / 100000000000000000;
+                    $sumEth = $sumEth + $axie['auction']['currentPrice'] / $ethDivisor;
                     $sumUsd = $sumUsd + (float) $axie['auction']['currentPriceUSD'];
                     $summedForAverage++;
                 }
@@ -211,6 +225,9 @@ class CrawlMarketplaceWatchlistService
                     'axieEntity' => $axieEntity,
                     'axie' => $axie,
                 ];
+
+                $this->em->persist($axieResult);
+                $this->em->flush();
             }
 
             usort($prices, function($axie1, $axie2) {
@@ -251,6 +268,7 @@ class CrawlMarketplaceWatchlistService
 
         $this->em->persist($crawl);
         $this->em->persist($watchlist);
+        $this->em->flush();
 
         return $output;
     }
@@ -286,6 +304,8 @@ class CrawlMarketplaceWatchlistService
             $currentPage = 1;
             while( $isLastPage === false && $isError === false ) {
 
+                $this->log('fetching from: ' . $from);
+
                 $payload['variables']['from'] = $from;
                 $payload['variables']['size'] = static::NUMBER_OF_RESULTS_FOR_PAGINATED;
                 $fetchPayload = [
@@ -301,57 +321,32 @@ class CrawlMarketplaceWatchlistService
                 ];
                 $response = $client->request('POST', $fetchPayload['url'], $fetchPayload['payload']);
 
-
-                $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now', new \DateTimeZone('UTC')));
-                $crawl
-                    ->setCrawlSessionUlid($crawlSessionUlid)
-                    ->setMarketplaceWatchlist($watchlist)
-                ;
-
                 try {
                     $statusCode = $response->getStatusCode();
                 } catch (TransportExceptionInterface $e) {
                     $isError = true;
-                    $this->em->persist($crawl);
-                    $this->em->flush();
                     $this->log( '> cannot fetch API response: ' . $e->getMessage() . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  );
                     continue;
                 }
 
                 if ( 200 !== $statusCode ) {
                     $isError = true;
-                    $crawl->setStatusCode($statusCode);
-                    $this->em->persist($crawl);
-                    $this->em->flush();
                     $this->log( '> API returned non-200 status code: ' . $statusCode . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  );
                     continue;
                 }
 
                 $content = $response->toArray();
 
-                $crawl
-                    ->setResponse(json_encode($content))
-                ;
-
                 if (empty($content['data']['axies']['total'])) {
                     $isError = true;
-                    $this->em->persist($crawl);
-                    $this->em->flush();
                     $this->log( '> Cannot get total number of Axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId'] . ' from: ' . $from   );
                     continue;
                 }
 
                 if ( ! empty($content['errors']) || empty($content['data']['axies']) || 1 > (int) $content['data']['axies']['total']) {
                     $isError = true;
-                    $crawl->setIsValid(false);
-                    $this->em->persist($crawl);
-                    $this->em->flush();
                     $this->log( '> API response contains error ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) . ' from: ' . $from;
                     continue;
-                } else {
-                    $crawl->setIsValid(true);
-                    $this->em->persist($crawl);
-                    $this->em->flush();
                 }
 
 
@@ -362,13 +357,13 @@ class CrawlMarketplaceWatchlistService
 
                 // check if the first axie costs more than 800 USD
                 if ( 800 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
-                    $this->log( '> done ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
+                    $this->log( '> done, reached 800 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;
                 }
 
                 if ( $totalNumberOfPages === $currentPage || $currentPage > $totalNumberOfPages ) {
-                    $this->log( '> done ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
+                    $this->log( '> done, reached the last page ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;
                 }
@@ -396,7 +391,11 @@ class CrawlMarketplaceWatchlistService
 
     }
 
-    public function crawlAll($crawlSessionUlid = null) {
+    public function crawlAll($crawlSessionUlid = null, SymfonyStyle $io = null) {
+
+        if (null !== $io) {
+            $this->io = $io;
+        }
 
         if (null === $crawlSessionUlid) {
             $crawlSessionUlid = new Ulid();
@@ -404,13 +403,23 @@ class CrawlMarketplaceWatchlistService
 
         $client = HttpClient::create();
 
-        $watchlists = $this->watchlistRepo->findBy(['shouldCrawlMorePage' => false], ['orderWeight' => 'DESC']);
+        $watchlists = $this->watchlistRepo->createQueryBuilder('w')
+            ->where('w.shouldCrawlMorePage != true')
+            ->orWhere('w.shouldCrawlMorePage IS NULL')
+//            ->where('w.id IN (:ids)')
+//            ->setParameter('ids', [25,26])
+            ->orderBy('w.orderWeight', 'DESC')
+            ->getQuery()
+            ->getResult();
 //        $watchlists = [$this->watchlistRepo->find(1)];
         $urlsAndPayloads = [];
         foreach($watchlists as $watchlist) {
+            $this->log('generating payload for watchlist: ' . $watchlist->getId() . ' ' . $watchlist->getName());
+
+            $numberOfResults = static::NUMBER_OF_RESULTS;
             $payload = json_decode($watchlist->getPayload(), true);
             $payload['variables']['from'] = 0;
-            $payload['variables']['size'] = static::NUMBER_OF_RESULTS;
+            $payload['variables']['size'] = $numberOfResults;
             $urlsAndPayloads[] = [
                 'url' => 'https://axieinfinity.com/graphql-server-v2/graphql',
                 'payload' => [
@@ -423,6 +432,7 @@ class CrawlMarketplaceWatchlistService
             ];
         }
 
+        $responses = [];
         foreach($urlsAndPayloads as $urlsAndPayload) {
             $responses[] = $client->request('POST', $urlsAndPayload['url'], $urlsAndPayload['payload']);
         }
@@ -431,7 +441,7 @@ class CrawlMarketplaceWatchlistService
         $output['axiesAdded'] = [];
 
         foreach($responses as $response) {
-            $output = $this->processResponse($crawlSessionUlid, $response, $output);
+            $output = $this->processResponse($crawlSessionUlid, $response, $output, $this->io);
             $this->em->flush();
         }
 
