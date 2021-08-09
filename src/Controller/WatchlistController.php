@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Axie;
 use App\Entity\CrawlAxieResult;
 use App\Entity\MarketplaceWatchlist;
 use App\Repository\AxieRepository;
 use App\Repository\CrawlAxieResultRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Repository\MarketplaceWatchlistRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -117,6 +119,10 @@ class WatchlistController extends AbstractController
 
             if ( null !== $lastCrawl ) {
                 $axieResults = $this->crawlAxieResultRepo->findBy(['crawl' => $lastCrawl], ['priceUsd' => 'ASC']);
+                $axieResults = new ArrayCollection($axieResults);
+                $axieResults = $axieResults->filter(function(CrawlAxieResult $crawlAxieResult) {
+                    return ( $crawlAxieResult->getAxie()->getQuality() !== null && $crawlAxieResult->getAxie()->getQuality() > 90 );
+                });
             } else {
                 $axieResults = null;
             }
