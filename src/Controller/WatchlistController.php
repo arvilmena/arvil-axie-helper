@@ -119,10 +119,10 @@ class WatchlistController extends AbstractController
 
             if ( null !== $lastCrawl ) {
                 $axieResults = $this->crawlAxieResultRepo->findBy(['crawl' => $lastCrawl], ['priceUsd' => 'ASC']);
-                $axieResults = new ArrayCollection($axieResults);
-                $axieResults = $axieResults->filter(function(CrawlAxieResult $crawlAxieResult) {
-                    return ( $crawlAxieResult->getAxie()->getQuality() !== null && $crawlAxieResult->getAxie()->getQuality() > 90 );
-                });
+//                $axieResults = new ArrayCollection($axieResults);
+//                $axieResults = $axieResults->filter(function(CrawlAxieResult $crawlAxieResult) {
+//                    return ( $crawlAxieResult->getAxie()->getQuality() !== null && $crawlAxieResult->getAxie()->getQuality() > 90 );
+//                });
             } else {
                 $axieResults = null;
             }

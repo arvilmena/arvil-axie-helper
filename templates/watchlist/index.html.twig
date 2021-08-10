@@ -110,41 +110,77 @@
                                                 </tbody>
                                             </table>
 
+
                                             {% if watchlist['$axieResults']|length %}
-                                                <div class="d-flex mt-16 flex-wrap justify-content-center">
+                                                <table id="axie-results-{{ watchlist['$entity'].getId() }}" class="table-responsive table-bordered">
+                                                    <thead>
+                                                    <tr>
+                                                        <th scope="col">ID</th>
+                                                        <th scope="col">Hp</th>
+                                                        <th scope="col">Speed</th>
+                                                        <th scope="col">Morale</th>
+                                                        <th scope="col">AttackPerUsd</th>
+                                                        <th scope="col">AvgAttackPerCard</th>
+
+                                                        <th scope="col">AvgDefencePerCard</th>
+                                                        <th scope="col">DefencePerUsd</th>
+
+                                                        <th scope="col">Price and Links</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
                                                     {% for axie in watchlist['$axieResults'] %}
-                                                        <div class="m-1 cursor-pointer">
-                                                            <div class="axie-card" style="width: 240px;">
-                                                                <div class="border border-gray-3 bg-gray-4 rounded transition hover:shadow hover:border-gray-6">
-                                                                    <div class="px-12 py-16">
-                                                                        <div class="flex justify-center items-center img-placeholder">
-                                                                            {% if axie.getAxie().getImageUrl() %}
-                                                                                <img class="img-fluid" src="{{ axie.getAxie().getImageUrl() }}" />
-                                                                            {% endif %}
-                                                                        </div>
-                                                                        <div class="h-0 pb-24 flex flex-row flex-wrap justify-center overflow-hidden items-baseline">
-                                                                            <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
-                                                                                Freaks Quality: {{ axie.getAxie().getQuality()|number_format(2) }}% <br />
-                                                                                Dominant Class Purity: {{ axie.getAxie().getDominantClassPurity()|number_format(2) }}% <br />
-                                                                                R1 Class Purity: {{ axie.getAxie().getR1ClassPurity()|number_format(2) }}% <br />
-                                                                                R2 Class Purity: {{ axie.getAxie().getR2ClassPurity()|number_format(2) }}% <br />
-                                                                                Breed Count: {{ axie.getBreedCount() }}/7 <br />
-                                                                            </small>
-                                                                            <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>
-                                                                            <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
-                                                                            <a href="{{ axie.getAxie().getUrl() }}" target="_blank">
-                                                                                <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
-                                                                                <a href="{{ path('axie_id', {id: axie.getAxie().getId() }) }}">
-                                                                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View Axie data</h6>
-                                                                                </a>
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
+                                                        {% set ae = axie.getAxie() %}
+                                                        <tr>
+                                                            <th scope="row">{{ ae.getId() }}</th>
+
+                                                            <td>{{ ae.getHp() }}</td>
+                                                            <td>{{ ae.getSpeed() }}</td>
+                                                            <td>{{ ae.getMorale() }}</td>
+                                                            <td>{{ ae.getAttackPerUsd()|number_format(5) }}</td>
+                                                            <td>{{ ae.getAvgAttackPerCard()|number_format(5) }}</td>
+
+                                                            <td>{{ ae.getAvgDefencePerCard()|number_format(5) }}</td>
+                                                            <td>{{ ae.getDefencePerUsd()|number_format(5) }}</td>
+
+
+                                                            <td data-order="{{ axie.getPriceUsd() }}">
+                                                                {% if axie.getAxie().getImageUrl() %}
+                                                                    <img class="img-fluid" src="{{ axie.getAxie().getImageUrl() }}" />
+                                                                {% endif %}
+
+                                                                <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
+                                                                    <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
+                                                                        Freaks Quality: {{ axie.getAxie().getQuality()|number_format(2) }}% <br />
+                                                                        Dominant Class Purity: {{ axie.getAxie().getDominantClassPurity()|number_format(2) }}% <br />
+                                                                        R1 Class Purity: {{ axie.getAxie().getR1ClassPurity()|number_format(2) }}% <br />
+                                                                        R2 Class Purity: {{ axie.getAxie().getR2ClassPurity()|number_format(2) }}% <br />
+                                                                        Breed Count: {{ axie.getBreedCount() }}/7 <br />
+                                                                        getSkill: {{ axie.getAxie().getSkill() }} <br />
+                                                                    </small>
+                                                                </small>
+
+                                                                <div>
+                                                                    <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>
+                                                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
+                                                                    <a href="{{ axie.getAxie().getUrl() }}" target="_blank">
+                                                                        <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
+                                                                    </a>
+                                                                    <a href="{{ path('axie_id', {id: axie.getAxie().getId() }) }}">
+                                                                        <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View Axie data</h6>
+                                                                    </a>
                                                                 </div>
-                                                            </div>
-                                                        </div>
+                                                            </td>
+                                                        </tr>
                                                     {% endfor %}
-                                                </div>
+                                                    </tbody>
+                                                </table>
+
+                                                <script>
+                                                    $(document).ready( function () {
+                                                        $('#axie-results-{{ watchlist['$entity'].getId() }}').DataTable();
+                                                    } );
+                                                </script>
                                             {% endif %}
                                             <style>
                                             </style>

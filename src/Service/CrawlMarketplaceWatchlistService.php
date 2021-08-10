@@ -355,15 +355,15 @@ class CrawlMarketplaceWatchlistService
                     $totalNumberOfPages = ceil( $totalResult / static::NUMBER_OF_RESULTS_FOR_PAGINATED );
                 }
 
-                // check if the first axie costs more than 800 USD
-                if ( 800 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
-                    $this->log( '> done, reached 800 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
+                if ( empty($content['data']['axies']['results']) || $totalNumberOfPages === $currentPage || $currentPage > $totalNumberOfPages ) {
+                    $this->log( '> done, reached the last page ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;
                 }
 
-                if ( $totalNumberOfPages === $currentPage || $currentPage > $totalNumberOfPages ) {
-                    $this->log( '> done, reached the last page ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
+                // check if the first axie costs more than 800 USD
+                if ( 850 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
+                    $this->log( '> done, reached 800 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;
                 }
