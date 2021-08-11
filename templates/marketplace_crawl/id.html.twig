@@ -114,7 +114,9 @@
 
             <script>
                 $(document).ready( function () {
-                    $('#axie-results-{{ data['$crawlEntity'].getId() }}').DataTable();
+                    $('#axie-results-{{ watchlist['$entity'].getId() }}').DataTable({
+                        "order": [[ 8, "asc" ]]
+                    });
                 } );
             </script>
             {% endif %}
