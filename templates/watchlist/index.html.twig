@@ -187,128 +187,128 @@
                                             {% endif %}
                                             <style>
                                             </style>
-                                            <canvas class="chart" id="{{ chartId }}"  width="1000" height="600">
 
-                                            </canvas>
+                                            {% if watchlist['$chartData']|length %}
+                                                <canvas class="chart" id="{{ chartId }}"  width="1000" height="600"></canvas>
+                                                <script>
 
-                                            <script>
+                                                    (function() {
 
-                                                (function() {
-
-                                                    const labels = {{ watchlist['$chartData']['crawlDate']|json_encode|raw }};
-                                                    const data = {
-                                                        labels: labels,
-                                                        datasets: [
-                                                            {
-                                                                label: 'lowestPriceUsd',
-                                                                data: {{ watchlist['$chartData']['lowestPriceUsd']|json_encode|raw }},
-                                                                borderColor: 'green',
-                                                                backgroundColor: 'transparent',
-                                                                borderWidth: 1,
-                                                                cubicInterpolationMode: 'monotone',
-                                                                fill: false,
-                                                                tension: 0.4
-                                                            },
-                                                            {
-                                                                label: 'averagePriceUsd',
-                                                                data: {{ watchlist['$chartData']['averagePriceUsd']|json_encode|raw }},
-                                                                borderColor: 'blue',
-                                                                backgroundColor: 'transparent',
-                                                                borderWidth: 1,
-                                                                cubicInterpolationMode: 'monotone',
-                                                                fill: false,
-                                                                tension: 0.4
-                                                            },
-                                                            {
-                                                                label: 'secondLowestPriceUsd',
-                                                                data: {{ watchlist['$chartData']['secondLowestPriceUsd']|json_encode|raw }},
-                                                                borderColor: 'orange',
-                                                                backgroundColor: 'transparent',
-                                                                borderWidth: 1,
-                                                                cubicInterpolationMode: 'monotone',
-                                                                fill: false,
-                                                                tension: 0.4
-                                                            }
-                                                        ]
-                                                    };
-                                                    const config = {
-                                                        type: 'line',
-                                                        data: data,
-                                                        options: {
-                                                            responsive: true,
-                                                            interaction: {
-                                                                intersect: true,
-                                                            },
-                                                            elements: {
-                                                                point:{
-                                                                    radius: 0
+                                                        const labels = {{ watchlist['$chartData']['crawlDate']|json_encode|raw }};
+                                                        const data = {
+                                                            labels: labels,
+                                                            datasets: [
+                                                                {
+                                                                    label: 'lowestPriceUsd',
+                                                                    data: {{ watchlist['$chartData']['lowestPriceUsd']|json_encode|raw }},
+                                                                    borderColor: 'green',
+                                                                    backgroundColor: 'transparent',
+                                                                    borderWidth: 1,
+                                                                    cubicInterpolationMode: 'monotone',
+                                                                    fill: false,
+                                                                    tension: 0.4
+                                                                },
+                                                                {
+                                                                    label: 'averagePriceUsd',
+                                                                    data: {{ watchlist['$chartData']['averagePriceUsd']|json_encode|raw }},
+                                                                    borderColor: 'blue',
+                                                                    backgroundColor: 'transparent',
+                                                                    borderWidth: 1,
+                                                                    cubicInterpolationMode: 'monotone',
+                                                                    fill: false,
+                                                                    tension: 0.4
+                                                                },
+                                                                {
+                                                                    label: 'secondLowestPriceUsd',
+                                                                    data: {{ watchlist['$chartData']['secondLowestPriceUsd']|json_encode|raw }},
+                                                                    borderColor: 'orange',
+                                                                    backgroundColor: 'transparent',
+                                                                    borderWidth: 1,
+                                                                    cubicInterpolationMode: 'monotone',
+                                                                    fill: false,
+                                                                    tension: 0.4
                                                                 }
-                                                            },
-                                                            scales: {
-                                                                x: {
-                                                                    display: true,
-                                                                    title: {
-                                                                        display: true
-                                                                    },
-                                                                    type: 'time',
-                                                                    time: {
-                                                                        displayFormats: {
-                                                                            'millisecond': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'second': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'minute': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'hour': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'day': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'week': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'month': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'quarter': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            'year': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                        }
+                                                            ]
+                                                        };
+                                                        const config = {
+                                                            type: 'line',
+                                                            data: data,
+                                                            options: {
+                                                                responsive: true,
+                                                                interaction: {
+                                                                    intersect: true,
+                                                                },
+                                                                elements: {
+                                                                    point:{
+                                                                        radius: 0
                                                                     }
                                                                 },
-                                                                y: {
-                                                                    display: true,
-                                                                    title: {
+                                                                scales: {
+                                                                    x: {
                                                                         display: true,
-                                                                        text: 'Value'
+                                                                        title: {
+                                                                            display: true
+                                                                        },
+                                                                        type: 'time',
+                                                                        time: {
+                                                                            displayFormats: {
+                                                                                'millisecond': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'second': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'minute': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'hour': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'day': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'week': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'month': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'quarter': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                                'year': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                                            }
+                                                                        }
                                                                     },
+                                                                    y: {
+                                                                        display: true,
+                                                                        title: {
+                                                                            display: true,
+                                                                            text: 'Value'
+                                                                        },
+                                                                    }
+                                                                },
+                                                                plugins: {
+                                                                    zoom: {
+                                                                        zoom: {
+                                                                            wheel: {
+                                                                                enabled: true,
+                                                                            },
+                                                                            pinch: {
+                                                                                enabled: true
+                                                                            },
+                                                                            mode: 'xy',
+                                                                        },
+                                                                        pan: {
+                                                                            enabled: true,
+                                                                            mode: 'xy',
+                                                                        },
+                                                                    },
+                                                                    tooltip: {
+                                                                        mode: 'index',
+                                                                        intersect: false
+                                                                    },
+                                                                    hover: {
+                                                                        mode: 'index',
+                                                                        intersect: false
+                                                                    }
                                                                 }
                                                             },
-                                                            plugins: {
-                                                                zoom: {
-                                                                    zoom: {
-                                                                        wheel: {
-                                                                            enabled: true,
-                                                                        },
-                                                                        pinch: {
-                                                                            enabled: true
-                                                                        },
-                                                                        mode: 'xy',
-                                                                    },
-                                                                    pan: {
-                                                                        enabled: true,
-                                                                        mode: 'xy',
-                                                                    },
-                                                                },
-                                                                tooltip: {
-                                                                    mode: 'index',
-                                                                    intersect: false
-                                                                },
-                                                                hover: {
-                                                                    mode: 'index',
-                                                                    intersect: false
-                                                                }
-                                                            }
-                                                        },
-                                                    };
+                                                        };
 
-                                                    var myChart = new Chart(
-                                                        document.getElementById('{{ chartId }}'),
-                                                        config
-                                                    );
+                                                        var myChart = new Chart(
+                                                            document.getElementById('{{ chartId }}'),
+                                                            config
+                                                        );
 
-                                                })();
+                                                    })();
 
-                                            </script>
+                                                </script>
+                                            {% endif %}
                                         </div>
                                         {# .accordion-body #}
                                     </div>

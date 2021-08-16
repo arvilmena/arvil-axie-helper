@@ -98,6 +98,11 @@ class CrawlMarketplaceWatchlistService
         }
     }
 
+    public function getMaxAllowedPrice(): int
+    {
+        return 700;
+    }
+
     public function processResponse($crawlSessionUlid, $response, $output = [], SymfonyStyle $io = null) {
 
         if (null !== $io && $this->io === null) {
@@ -175,6 +180,8 @@ class CrawlMarketplaceWatchlistService
 
                 // should not be banned.
                 if ( false !== $axie['battleInfo']['banned'] ) {
+                    $this->em->persist($axieEntity);
+                    $this->em->flush();
                     continue;
                 }
 
@@ -189,6 +196,13 @@ class CrawlMarketplaceWatchlistService
 
                 $ethDivisor = 1000000000000000000;
                 $axieCurrentPriceUSD = (float) $axie['auction']['currentPriceUSD'];
+
+                if ( $this->getMaxAllowedPrice() <= $axieCurrentPriceUSD ) {
+                    $this->log( '> done, reached ' . $this->getMaxAllowedPrice() .  ' USD+ axies ' . ' for watchlist id: ' . $watchlistId ) ;
+                    $this->em->persist($axieEntity);
+                    $this->em->flush();
+                    break;
+                }
 
                 if ( $axieEntity->getAvgAttackPerCard() > 0 && $axieEntity->getAvgDefencePerCard() > 0 ) {
                     $axieEntity
@@ -402,9 +416,8 @@ class CrawlMarketplaceWatchlistService
                     continue;
                 }
 
-                // check if the first axie costs more than 800 USD
-                if ( 700 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
-                    $this->log( '> done, reached 700 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
+                if ( $this->getMaxAllowedPrice() <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
+                    $this->log( '> done, reached ' . $this->getMaxAllowedPrice() . ' USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;
                 }

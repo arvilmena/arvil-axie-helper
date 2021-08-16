@@ -152,41 +152,46 @@ class WatchlistController extends AbstractController
             $_data['$lowestAveragePastMonth'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('1 month ago', $defaultTimezone));
             $_data['$lowestAverageTwoWeeksAgo'] = $this->crawlRepo->pickWatchlistLowestAveragePriceBetweenDate($watchlistId, new \DateTime('2 weeks ago', $defaultTimezone));
 
-            $crawls = $this->crawlRepo->createQueryBuilder('c')
-                ->leftJoin('c.marketplaceWatchlist', 'w')
-                ->addSelect('w')
-                ->where('w.id = :marketplaceId')
-                ->andWhere('c.isValid = true')
-                ->andWhere('c.numberOfValidAxies > 0')
-                ->setParameter('marketplaceId', $watchlist->getId())
-                ->orderBy('c.crawlDate', 'DESC')
-                ->setMaxResults(600)
-                ->getQuery()
-                ->getResult()
-            ;
-            $crawls = array_reverse($crawls, false);
-            $chartData = [];
-            foreach($crawls as $crawl) {
-                $chartData[] = $this->serializer->normalize($crawl, null, [
-                    AbstractNormalizer::ATTRIBUTES => [
-                        'crawlDate',
-                        'averagePriceUsd',
-                        'lowestPriceUsd',
-                        'secondLowestPriceUsd'
-                    ]
-                ]);
+
+            if ( false === $watchlist->getShouldCrawlMorePage() ) {
+                $crawls = $this->crawlRepo->createQueryBuilder('c')
+                    ->leftJoin('c.marketplaceWatchlist', 'w')
+                    ->addSelect('w')
+                    ->where('w.id = :marketplaceId')
+                    ->andWhere('c.isValid = true')
+                    ->andWhere('c.numberOfValidAxies > 0')
+                    ->setParameter('marketplaceId', $watchlist->getId())
+                    ->orderBy('c.crawlDate', 'DESC')
+                    ->setMaxResults(600)
+                    ->getQuery()
+                    ->getResult()
+                ;
+                $crawls = array_reverse($crawls, false);
+                $chartData = [];
+                foreach($crawls as $crawl) {
+                    $chartData[] = $this->serializer->normalize($crawl, null, [
+                        AbstractNormalizer::ATTRIBUTES => [
+                            'crawlDate',
+                            'averagePriceUsd',
+                            'lowestPriceUsd',
+                            'secondLowestPriceUsd'
+                        ]
+                    ]);
+                }
+                $crawlDates = array_column($chartData, 'crawlDate');
+                $serializer = new Serializer([new DateTimeNormalizer()]);
+                array_walk($crawlDates, function(&$item1, $key, Serializer $serializer) {
+                    $date = new \DateTime($item1, new \DateTimeZone('UTC'));
+                    $date->setTimezone(new \DateTimeZone("Asia/Manila"));
+                    $item1 = $serializer->normalize($date);
+                }, $serializer);
+                $_data['$chartData']['crawlDate'] = $crawlDates;
+                $_data['$chartData']['lowestPriceUsd'] = array_column($chartData, 'lowestPriceUsd');
+                $_data['$chartData']['averagePriceUsd'] = array_column($chartData, 'averagePriceUsd');
+                $_data['$chartData']['secondLowestPriceUsd'] = array_column($chartData, 'secondLowestPriceUsd');
+            } else {
+                $_data['$chartData'] = null;
             }
-            $crawlDates = array_column($chartData, 'crawlDate');
-            $serializer = new Serializer([new DateTimeNormalizer()]);
-            array_walk($crawlDates, function(&$item1, $key, Serializer $serializer) {
-                $date = new \DateTime($item1, new \DateTimeZone('UTC'));
-                $date->setTimezone(new \DateTimeZone("Asia/Manila"));
-                $item1 = $serializer->normalize($date);
-            }, $serializer);
-            $_data['$chartData']['crawlDate'] = $crawlDates;
-            $_data['$chartData']['lowestPriceUsd'] = array_column($chartData, 'lowestPriceUsd');
-            $_data['$chartData']['averagePriceUsd'] = array_column($chartData, 'averagePriceUsd');
-            $_data['$chartData']['secondLowestPriceUsd'] = array_column($chartData, 'secondLowestPriceUsd');
 
             $context['watchlists'][] = $_data;
         }

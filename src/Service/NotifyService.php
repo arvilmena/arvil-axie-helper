@@ -86,10 +86,14 @@ class NotifyService
         ];
 
         $html = '';
+        $subject = '';
+        $subject .= '[PRICE ALERT AXIES] ';
 
         if ($watchlist instanceof MarketplaceWatchlist) {
             $html .= 'Price hit for watchlist: ' . $watchlist->getId() . ' - ' . $watchlist->getName() . ' pricelimit: ' . $watchlist->getNotifyPrice() . '<br />';
+            $subject .= $watchlist->getId() . ' - ' . $watchlist->getName() . ' pricelimit: ' . $watchlist->getNotifyPrice() . ' ';
         }
+        $subject .= count( $axies ) . ' axies hit the price limit';
 
         $html .= '<ul>';
         foreach ($axies as $axie) {
@@ -100,7 +104,7 @@ class NotifyService
         $email = (new Email())
             ->from('my-axie-helper@arvilmena.com')
             ->to('arvil@arvilmena.com')
-            ->subject('[PRICE ALERT AXIES] ' . count( $axies ) . ' axies hit the price limit')
+            ->subject($subject)
             ->html($html);
 
         try {
