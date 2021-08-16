@@ -130,7 +130,8 @@
                                                     </thead>
                                                     <tbody>
                                                     {% for axie in watchlist['$axieResults'] %}
-                                                        {% set ae = axie.getAxie() %}
+                                                        {% set ae = axie.getAxieHistory().getAxie() %}
+                                                        {% set ah = axie.getAxieHistory() %}
                                                         <tr>
                                                             <th scope="row">{{ ae.getId() }}</th>
 
@@ -144,29 +145,29 @@
                                                             <td>{{ ae.getDefencePerUsd()|number_format(5) }}</td>
 
 
-                                                            <td data-order="{{ axie.getPriceUsd() }}">
-                                                                {% if axie.getAxie().getImageUrl() %}
-                                                                    <img class="img-fluid" src="{{ axie.getAxie().getImageUrl() }}" />
+                                                            <td data-order="{{ ah.getPriceUsd() }}">
+                                                                {% if ae.getImageUrl() %}
+                                                                    <img class="img-fluid" src="{{ ae.getImageUrl() }}" />
                                                                 {% endif %}
 
                                                                 <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
                                                                     <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
-                                                                        Freaks Quality: {{ axie.getAxie().getQuality()|number_format(2) }}% <br />
-                                                                        Dominant Class Purity: {{ axie.getAxie().getDominantClassPurity()|number_format(2) }}% <br />
-                                                                        R1 Class Purity: {{ axie.getAxie().getR1ClassPurity()|number_format(2) }}% <br />
-                                                                        R2 Class Purity: {{ axie.getAxie().getR2ClassPurity()|number_format(2) }}% <br />
-                                                                        Breed Count: {{ axie.getBreedCount() }}/7 <br />
-                                                                        getSkill: {{ axie.getAxie().getSkill() }} <br />
+                                                                        Freaks Quality: {{ ae.getQuality()|number_format(2) }}% <br />
+                                                                        Dominant Class Purity: {{ ae.getDominantClassPurity()|number_format(2) }}% <br />
+                                                                        R1 Class Purity: {{ ae.getR1ClassPurity()|number_format(2) }}% <br />
+                                                                        R2 Class Purity: {{ ae.getR2ClassPurity()|number_format(2) }}% <br />
+                                                                        Breed Count: {{ ah.getBreedCount() }}/7 <br />
+                                                                        getSkill: {{ ae.getSkill() }} <br />
                                                                     </small>
                                                                 </small>
 
                                                                 <div>
-                                                                    <h5 class="truncate font-medium text-center">{{ axie.getPriceEth() }} ETH</h5>
-                                                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ axie.getPriceUsd() }}</h6>
-                                                                    <a href="{{ axie.getAxie().getUrl() }}" target="_blank">
+                                                                    <h5 class="truncate font-medium text-center">{{ ah.getPriceEth() }} ETH</h5>
+                                                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ ah.getPriceUsd() }}</h6>
+                                                                    <a href="{{ ae.getUrl() }}" target="_blank">
                                                                         <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
                                                                     </a>
-                                                                    <a href="{{ path('axie_id', {id: axie.getAxie().getId() }) }}">
+                                                                    <a href="{{ path('axie_id', {id: ae.getId() }) }}">
                                                                         <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View Axie data</h6>
                                                                     </a>
                                                                 </div>

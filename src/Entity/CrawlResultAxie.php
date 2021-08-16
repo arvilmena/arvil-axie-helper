@@ -18,12 +18,6 @@ class CrawlResultAxie
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=MarketplaceCrawl::class, inversedBy="crawlResultAxies")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $crawl;
-
-    /**
      * @ORM\Column(type="ulid", nullable=true)
      */
     private $crawlUlid;
@@ -39,6 +33,11 @@ class CrawlResultAxie
      */
     private $date;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=MarketplaceWatchlist::class)
+     */
+    private $marketplaceWatchlist;
+
     public function __construct(\DateTimeInterface $dateTime)
     {
         $this->date = $dateTime;
@@ -47,18 +46,6 @@ class CrawlResultAxie
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getCrawl(): ?MarketplaceCrawl
-    {
-        return $this->crawl;
-    }
-
-    public function setCrawl(?MarketplaceCrawl $crawl): self
-    {
-        $this->crawl = $crawl;
-
-        return $this;
     }
 
     public function getCrawlUlid()
@@ -93,6 +80,18 @@ class CrawlResultAxie
     public function setDate(\DateTimeInterface $date): self
     {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getMarketplaceWatchlist(): ?MarketplaceWatchlist
+    {
+        return $this->marketplaceWatchlist;
+    }
+
+    public function setMarketplaceWatchlist(?MarketplaceWatchlist $marketplaceWatchlist): self
+    {
+        $this->marketplaceWatchlist = $marketplaceWatchlist;
 
         return $this;
     }

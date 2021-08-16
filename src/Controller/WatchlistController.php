@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Axie;
 use App\Entity\CrawlAxieResult;
+use App\Entity\CrawlResultAxie;
 use App\Entity\MarketplaceWatchlist;
 use App\Repository\AxieRepository;
 use App\Repository\CrawlAxieResultRepository;
+use App\Repository\CrawlResultAxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -40,12 +42,17 @@ class WatchlistController extends AbstractController
      * @var SerializerInterface
      */
     private $serializer;
+    /**
+     * @var CrawlResultAxieRepository
+     */
+    private $crawlResultAxieRepo;
 
     public function __construct(
         MarketplaceWatchlistRepository $watchlistRepo,
         MarketplaceCrawlRepository $crawlRepo,
         AxieRepository $axieRepo,
         CrawlAxieResultRepository $crawlAxieResultRepo,
+        CrawlResultAxieRepository $crawlResultAxieRepo,
         SerializerInterface $serializer
     ) {
 
@@ -54,6 +61,7 @@ class WatchlistController extends AbstractController
         $this->axieRepo = $axieRepo;
         $this->crawlAxieResultRepo = $crawlAxieResultRepo;
         $this->serializer = $serializer;
+        $this->crawlResultAxieRepo = $crawlResultAxieRepo;
     }
 
     /**
@@ -118,11 +126,10 @@ class WatchlistController extends AbstractController
             $_data['$lastCrawlEntity'] = $lastCrawl;
 
             if ( null !== $lastCrawl ) {
-                $axieResults = $this->crawlAxieResultRepo->findBy(['crawl' => $lastCrawl], ['priceUsd' => 'ASC']);
-//                $axieResults = new ArrayCollection($axieResults);
-//                $axieResults = $axieResults->filter(function(CrawlAxieResult $crawlAxieResult) {
-//                    return ( $crawlAxieResult->getAxie()->getQuality() !== null && $crawlAxieResult->getAxie()->getQuality() > 90 );
-//                });
+                /**
+                 * @var $axieResults[] CrawlResultAxie
+                 */
+                $axieResults = $this->crawlResultAxieRepo->findBy(['crawlUlid' => $lastCrawl->getCrawlSessionUlid(), 'marketplaceWatchlist' => $watchlist], ['date' => 'DESC']);
             } else {
                 $axieResults = null;
             }

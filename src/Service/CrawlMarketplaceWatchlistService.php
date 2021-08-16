@@ -243,7 +243,7 @@ class CrawlMarketplaceWatchlistService
                 $crawlResultAxieEntity = new CrawlResultAxie(new \DateTime('now'));
                 $crawlResultAxieEntity
                     ->setAxieHistory($axieHistory)
-                    ->setCrawl($crawl)
+                    ->setMarketplaceWatchlist($watchlist)
                     ->setCrawlUlid($crawlSessionUlid)
                 ;
                 $this->em->persist($crawlResultAxieEntity);
