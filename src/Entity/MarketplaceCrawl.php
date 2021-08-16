@@ -130,10 +130,16 @@ class MarketplaceCrawl
      */
     private $secondLowestPriceAxie;
 
+    /**
+     * @ORM\OneToMany(targetEntity=CrawlResultAxie::class, mappedBy="crawl", orphanRemoval=true)
+     */
+    private $crawlResultAxies;
+
     public function __construct(string $request, \DateTimeInterface $crawlDate) {
         $this->request = $request;
         $this->crawlDate = $crawlDate;
         $this->crawlAxieResults = new ArrayCollection();
+        $this->crawlResultAxies = new ArrayCollection();
     }
 
     public function getId(): int
@@ -412,6 +418,36 @@ class MarketplaceCrawl
     public function setSecondLowestPriceAxie(?Axie $secondLowestPriceAxie): self
     {
         $this->secondLowestPriceAxie = $secondLowestPriceAxie;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CrawlResultAxie[]
+     */
+    public function getCrawlResultAxies(): Collection
+    {
+        return $this->crawlResultAxies;
+    }
+
+    public function addCrawlResultAxy(CrawlResultAxie $crawlResultAxy): self
+    {
+        if (!$this->crawlResultAxies->contains($crawlResultAxy)) {
+            $this->crawlResultAxies[] = $crawlResultAxy;
+            $crawlResultAxy->setCrawl($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCrawlResultAxy(CrawlResultAxie $crawlResultAxy): self
+    {
+        if ($this->crawlResultAxies->removeElement($crawlResultAxy)) {
+            // set the owning side to null (unless already changed)
+            if ($crawlResultAxy->getCrawl() === $this) {
+                $crawlResultAxy->setCrawl(null);
+            }
+        }
 
         return $this;
     }

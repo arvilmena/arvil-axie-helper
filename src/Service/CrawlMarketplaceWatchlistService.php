@@ -20,9 +20,12 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Axie;
+use App\Entity\AxieHistory;
 use App\Entity\AxieRawData;
 use App\Entity\CrawlAxieResult;
+use App\Entity\CrawlResultAxie;
 use App\Entity\MarketplaceCrawl;
+use App\Repository\AxieHistoryRepository;
 use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
@@ -63,18 +66,24 @@ class CrawlMarketplaceWatchlistService
     private $axieRawDataRepo;
 
     private $io;
+    /**
+     * @var AxieHistoryRepository
+     */
+    private $axieHistoryRepo;
 
     public function __construct(
         EntityManagerInterface $em,
         MarketplaceWatchlistRepository $watchlistRepo,
         AxieRepository $axieRepo,
-        AxieRawDataRepository $axieRawDataRepo
+        AxieRawDataRepository $axieRawDataRepo,
+        AxieHistoryRepository $axieHistoryRepo
     )
     {
         $this->em = $em;
         $this->watchlistRepo = $watchlistRepo;
         $this->axieRepo = $axieRepo;
         $this->axieRawDataRepo = $axieRawDataRepo;
+        $this->axieHistoryRepo = $axieHistoryRepo;
     }
 
     public function log($msg, $type = 'note') {
@@ -157,19 +166,6 @@ class CrawlMarketplaceWatchlistService
                 $this->em->persist($rawDataEntity);
                 $this->em->flush();
 
-                $axieResult = new CrawlAxieResult();
-                $axieResult
-                    ->setCrawl($crawl)
-                    ->setAxie($axieEntity);
-                $this->em->persist($axieResult);
-                $this->em->persist($axieEntity);
-                $this->em->persist($crawl);
-                $this->em->flush();
-
-                if (isset($axie['breedCount'])) {
-                    $axieResult->setBreedCount((int) $axie['breedCount']);
-                }
-
 
                 // should not be banned.
                 if ( false !== $axie['battleInfo']['banned'] ) {
@@ -186,10 +182,6 @@ class CrawlMarketplaceWatchlistService
                 }
 
                 $ethDivisor = 1000000000000000000;
-                $axieResult
-                    ->setPriceEth(round($axie['auction']['currentPrice'] / $ethDivisor, 4))
-                    ->setPriceUsd((float) $axie['auction']['currentPriceUSD'])
-                ;
 
                 if ( $axieEntity->getAvgAttackPerCard() > 0 && $axieEntity->getAvgDefencePerCard() > 0 ) {
                     $axieEntity
@@ -226,8 +218,40 @@ class CrawlMarketplaceWatchlistService
                     'axie' => $axie,
                 ];
 
-                $this->em->persist($axieResult);
+
+                $axieHistory = $this->axieHistoryRepo->pickAxiesLast($axieEntity->getId());
+                $ethPrice = round((float) ($axie['auction']['currentPrice'] / $ethDivisor), 4);
+                $usdPrice = round((float) $axie['auction']['currentPriceUSD'], 1);
+                if (
+                    null === $axieHistory
+                    || $axieHistory->getPriceEth() !== $ethPrice
+                    || $axieHistory->getPriceUsd() !== $usdPrice
+                    || $axieHistory->getBreedCount() !== (int) $axie['breedCount']
+                ) {
+                    $axieHistory = new AxieHistory( new \DateTime('now') );
+                    $axieHistory
+                        ->setAxie($axieEntity)
+                        ->setPriceEth( $ethPrice )
+                        ->setPriceUsd( $usdPrice )
+                        ->setBreedCount((int) $axie['breedCount'])
+                    ;
+                    $this->em->persist($axieHistory);
+                    $this->em->persist($axieEntity);
+                    $this->em->flush();
+                }
+
+                $crawlResultAxieEntity = new CrawlResultAxie(new \DateTime('now'));
+                $crawlResultAxieEntity
+                    ->setAxieHistory($axieHistory)
+                    ->setCrawl($crawl)
+                    ->setCrawlUlid($crawlSessionUlid)
+                ;
+                $this->em->persist($crawlResultAxieEntity);
+                $this->em->persist($axieHistory);
+                $this->em->persist($crawl);
                 $this->em->flush();
+
+
             }
 
             usort($prices, function($axie1, $axie2) {
@@ -362,7 +386,7 @@ class CrawlMarketplaceWatchlistService
                 }
 
                 // check if the first axie costs more than 800 USD
-                if ( 850 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
+                if ( 700 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
                     $this->log( '> done, reached 800 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;

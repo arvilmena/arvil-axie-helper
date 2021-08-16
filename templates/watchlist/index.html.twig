@@ -61,7 +61,7 @@
                                                 </thead>
                                                 <tbody>
                                                 <tr>
-                                                    <th scope="col" colspan="6" class="text-center">Lowest (first result skipped)</th>
+                                                    <th scope="col" colspan="6" class="text-center">Historical prices of 2nd Lowest (first result is unreliable)</th>
                                                 </tr>
                                                 {% for node in [
                                                     '$lastCrawlEntity',
@@ -86,7 +86,7 @@
                                                     {% endif %}
                                                 {% endfor %}
                                                 <tr>
-                                                    <th scope="col" colspan="6" class="text-center">Averages (first result skipped)</th>
+                                                    <th scope="col" colspan="6" class="text-center">Historical averages of all axies excluding the price of the lowest</th>
                                                 </tr>
                                                 {% for node in [
                                                     '$lowestAverageToday',

@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Uid\Ulid;
 
 class CrawlCommand extends Command
 {
@@ -43,7 +44,9 @@ class CrawlCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $output = $this->crawlMarketplaceWatchlistService->crawlAll(null, $io);
+        $crawlSessionUlid = new Ulid();
+
+        $output = $this->crawlMarketplaceWatchlistService->crawlAll($crawlSessionUlid, $io);
 
         if ( ! empty($output['axiesAdded']) ) {
             $this->axieDataService->processAllUnprocessed($io, $output['axiesAdded']);

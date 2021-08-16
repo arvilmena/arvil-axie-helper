@@ -138,6 +138,11 @@ class Axie
      */
     private $defencePerUsd;
 
+    /**
+     * @ORM\OneToMany(targetEntity=AxieHistory::class, mappedBy="axie", orphanRemoval=true)
+     */
+    private $axieHistories;
+
     public function __construct(int $id) {
         $this->id = $id;
         $this->url = 'https://marketplace.axieinfinity.com/axie/' . $id;
@@ -145,6 +150,7 @@ class Axie
         $this->parts = new ArrayCollection();
         $this->genes = new ArrayCollection();
         $this->genePassingRates = new ArrayCollection();
+        $this->axieHistories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -495,6 +501,36 @@ class Axie
     public function setDefencePerUsd(?float $defencePerUsd): self
     {
         $this->defencePerUsd = $defencePerUsd;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AxieHistory[]
+     */
+    public function getAxieHistories(): Collection
+    {
+        return $this->axieHistories;
+    }
+
+    public function addAxieHistory(AxieHistory $axieHistory): self
+    {
+        if (!$this->axieHistories->contains($axieHistory)) {
+            $this->axieHistories[] = $axieHistory;
+            $axieHistory->setAxie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAxieHistory(AxieHistory $axieHistory): self
+    {
+        if ($this->axieHistories->removeElement($axieHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($axieHistory->getAxie() === $this) {
+                $axieHistory->setAxie(null);
+            }
+        }
 
         return $this;
     }
