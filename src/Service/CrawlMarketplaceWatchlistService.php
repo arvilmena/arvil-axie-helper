@@ -404,7 +404,7 @@ class CrawlMarketplaceWatchlistService
 
                 // check if the first axie costs more than 800 USD
                 if ( 700 <= (float) $content['data']['axies']['results'][0]['auction']['currentPriceUSD']) {
-                    $this->log( '> done, reached 800 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
+                    $this->log( '> done, reached 700 USD+ axies ' . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId']  ) ;
                     $isLastPage = true;
                     continue;
                 }

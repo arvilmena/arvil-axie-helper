@@ -34,7 +34,8 @@ class CrawlResultAxie
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity=MarketplaceWatchlist::class)
+     * @ORM\ManyToOne(targetEntity=MarketplaceWatchlist::class, )
+     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
     private $marketplaceWatchlist;
 
