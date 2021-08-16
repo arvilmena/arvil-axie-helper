@@ -45,6 +45,11 @@ class MarketplaceWatchlist
      */
     private $shouldCrawlMorePage;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $notifyPrice;
+
     public function __construct() {
         $this->crawls = new ArrayCollection();
     }
@@ -128,6 +133,18 @@ class MarketplaceWatchlist
     public function setShouldCrawlMorePage(?bool $shouldCrawlMorePage): self
     {
         $this->shouldCrawlMorePage = $shouldCrawlMorePage;
+
+        return $this;
+    }
+
+    public function getNotifyPrice(): ?float
+    {
+        return $this->notifyPrice;
+    }
+
+    public function setNotifyPrice(?float $notifyPrice): self
+    {
+        $this->notifyPrice = $notifyPrice;
 
         return $this;
     }

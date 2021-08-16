@@ -70,13 +70,18 @@ class CrawlMarketplaceWatchlistService
      * @var AxieHistoryRepository
      */
     private $axieHistoryRepo;
+    /**
+     * @var NotifyService
+     */
+    private $notifyService;
 
     public function __construct(
         EntityManagerInterface $em,
         MarketplaceWatchlistRepository $watchlistRepo,
         AxieRepository $axieRepo,
         AxieRawDataRepository $axieRawDataRepo,
-        AxieHistoryRepository $axieHistoryRepo
+        AxieHistoryRepository $axieHistoryRepo,
+        NotifyService $notifyService
     )
     {
         $this->em = $em;
@@ -84,6 +89,7 @@ class CrawlMarketplaceWatchlistService
         $this->axieRepo = $axieRepo;
         $this->axieRawDataRepo = $axieRawDataRepo;
         $this->axieHistoryRepo = $axieHistoryRepo;
+        $this->notifyService = $notifyService;
     }
 
     public function log($msg, $type = 'note') {
@@ -182,11 +188,12 @@ class CrawlMarketplaceWatchlistService
                 }
 
                 $ethDivisor = 1000000000000000000;
+                $axieCurrentPriceUSD = (float) $axie['auction']['currentPriceUSD'];
 
                 if ( $axieEntity->getAvgAttackPerCard() > 0 && $axieEntity->getAvgDefencePerCard() > 0 ) {
                     $axieEntity
-                        ->setAttackPerUsd( $axieEntity->getAvgAttackPerCard() / (float) $axie['auction']['currentPriceUSD'] )
-                        ->setDefencePerUsd( $axieEntity->getAvgDefencePerCard() / (float) $axie['auction']['currentPriceUSD'] )
+                        ->setAttackPerUsd( $axieEntity->getAvgAttackPerCard() / $axieCurrentPriceUSD )
+                        ->setDefencePerUsd( $axieEntity->getAvgDefencePerCard() / $axieCurrentPriceUSD )
                     ;
                     $this->em->persist($axieEntity);
                     $this->em->flush();
@@ -199,21 +206,21 @@ class CrawlMarketplaceWatchlistService
                     $highestPriceEth = $axie['auction']['currentPrice'] / $ethDivisor;
                 }
                 if ($axie['auction']['currentPriceUSD'] < $lowestPriceUsd) {
-                    $lowestPriceUsd = (float) $axie['auction']['currentPriceUSD'];
+                    $lowestPriceUsd = $axieCurrentPriceUSD;
                 }
                 if ($axie['auction']['currentPriceUSD'] > $highestPriceUsd) {
-                    $highestPriceUsd = (float) $axie['auction']['currentPriceUSD'];
+                    $highestPriceUsd = $axieCurrentPriceUSD;
                 }
                 // Don't include the first one, they can be noise sometimes
                 if ($count > 0 && $totalAxieResult > 1) {
                     $sumEth = $sumEth + $axie['auction']['currentPrice'] / $ethDivisor;
-                    $sumUsd = $sumUsd + (float) $axie['auction']['currentPriceUSD'];
+                    $sumUsd = $sumUsd + $axieCurrentPriceUSD;
                     $summedForAverage++;
                 }
                 $count++;
 
                 $prices[] = [
-                    'price' => (float) $axie['auction']['currentPriceUSD'],
+                    'price' => $axieCurrentPriceUSD,
                     'axieEntity' => $axieEntity,
                     'axie' => $axie,
                 ];
@@ -221,7 +228,7 @@ class CrawlMarketplaceWatchlistService
 
                 $axieHistory = $this->axieHistoryRepo->pickAxiesLast($axieEntity->getId());
                 $ethPrice = round((float) ($axie['auction']['currentPrice'] / $ethDivisor), 4);
-                $usdPrice = round((float) $axie['auction']['currentPriceUSD'], 1);
+                $usdPrice = round($axieCurrentPriceUSD, 1);
                 if (
                     null === $axieHistory
                     || $axieHistory->getPriceEth() !== $ethPrice
@@ -251,6 +258,16 @@ class CrawlMarketplaceWatchlistService
                 $this->em->persist($crawl);
                 $this->em->flush();
 
+                
+                if ( $axieCurrentPriceUSD <= $watchlist->getNotifyPrice() && $watchlist->getNotifyPrice() > 0 ) {
+                    if (!isset($output['notifyPriceAxies'])) {
+                        $output['notifyPriceAxies'] = [];
+                    }
+                    if (!isset($output['notifyPriceAxies'][$watchlist->getId()])) {
+                        $output['notifyPriceAxies'][$watchlist->getId()] = [];
+                    }
+                    $output['notifyPriceAxies'][$watchlist->getId()][] = $axieEntity;
+                }
 
             }
 
@@ -411,6 +428,13 @@ class CrawlMarketplaceWatchlistService
 
         }
 
+        if ( !empty($output['notifyPriceAxies']) ) {
+            foreach($output['notifyPriceAxies'] as $watchlistId => $axies) {
+                $watchlist = $this->watchlistRepo->find($watchlistId);
+                $this->notifyService->notifyPriceAlert($axies, $watchlist);
+            }
+        }
+
         return $output;
 
     }
@@ -467,6 +491,13 @@ class CrawlMarketplaceWatchlistService
         foreach($responses as $response) {
             $output = $this->processResponse($crawlSessionUlid, $response, $output, $this->io);
             $this->em->flush();
+        }
+
+        if ( !empty($output['notifyPriceAxies']) ) {
+            foreach($output['notifyPriceAxies'] as $watchlistId => $axies) {
+                $watchlist = $this->watchlistRepo->find($watchlistId);
+                $this->notifyService->notifyPriceAlert($axies, $watchlist);
+            }
         }
 
         return $output;

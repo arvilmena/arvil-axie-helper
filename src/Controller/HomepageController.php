@@ -7,6 +7,7 @@ use App\Entity\MarketplaceCrawl;
 use App\Repository\AxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Service\CrawlMarketplaceWatchlistService;
+use App\Service\NotifyService;
 use App\Util\AxieGeneUtil;
 use BCMathExtended\BC;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,6 +59,13 @@ class HomepageController extends AbstractController
         return $this->render('homepage/index.html.twig', [
             'controller_name' => 'HomepageController',
         ]);
+    }
+
+    /**
+     * @Route("/email-test", name="emailTest")
+     */
+    public function emailTest(NotifyService $notifyService):Response {
+        return $this->json($notifyService->test('hey'));
     }
 
     /**
