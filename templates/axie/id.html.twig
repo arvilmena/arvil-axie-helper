@@ -27,22 +27,11 @@
                                 </div>
                                 <div class="h-0 pb-24 flex flex-row flex-wrap justify-center overflow-hidden items-baseline">
                                     <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
-                                        <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
-                                            Freaks Quality: {{ axie.getQuality()|number_format(2) }}% <br />
-                                            Dominant Class Purity: {{ axie.getDominantClassPurity()|number_format(2) }}% <br />
-                                            R1 Class Purity: {{ axie.getR1ClassPurity()|number_format(2) }}% <br />
-                                            R2 Class Purity: {{ axie.getR2ClassPurity()|number_format(2) }}% <br />
-                                            Breed Count: {{ axie.getBreedCount() }}/7 <br />
-                                            Class: {{ axie.getClass() }}/7 <br />
-                                            getHp: {{ axie.getHp() }}/7 <br />
-                                            getSpeed: {{ axie.getSpeed() }}/7 <br />
-                                            getSkill: {{ axie.getSkill() }}/7 <br />
-                                            getMorale: {{ axie.getMorale() }}/7 <br />
-                                            getAvgAttackPerCard: {{ axie.getAvgAttackPerCard() }}/7 <br />
-                                            getAttackPerUsd: {{ axie.getAttackPerUsd() }}/7 <br />
-                                            getAvgDefencePerCard: {{ axie.getAvgDefencePerCard() }}/7 <br />
-                                            getDefencePerUsd: {{ axie.getDefencePerUsd() }}/7 <br />
-                                        </small>
+                                        Freaks Quality: {{ axie.getQuality()|number_format(2) }}% <br />
+                                        Dominant Class Purity: {{ axie.getDominantClassPurity()|number_format(2) }}% <br />
+                                        R1 Class Purity: {{ axie.getR1ClassPurity()|number_format(2) }}% <br />
+                                        R2 Class Purity: {{ axie.getR2ClassPurity()|number_format(2) }}% <br />
+                                        getSkill: {{ axie.getSkill() }} <br />
                                     </small>
                                     <a href="{{ axie.getUrl() }}" target="_blank">
                                         <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
@@ -69,16 +58,10 @@
                 {% for result in data['$crawlAxieResults'] %}
                     <tr>
                         <td>
-                            {% if result.getCrawl() %}
-                                <a href="{{ path('marketplace_crawl_id', {id: result.getCrawl().getId() }) }}">{{ result.getCrawl().getId() }}</a>
-                            {% endif %}
                         </td>
                         <th scope="row">
-                            {% if result.getCrawl() and result.getCrawl().getMarketplaceWatchlist() %}
-                                {{ result.getCrawl().getMarketplaceWatchlist().getName() }}
-                            {% endif %}
                         </th>
-                        <td>{{ result.getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
+                        <td>{{ result.getDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
                         <td>{{ result.getBreedCount() }}</td>
                         <td>{{ result.getPriceUsd()|format_currency('USD') }}</td>
                         <td>{{ result.getPriceEth()|format_currency('ETH') }}</td>

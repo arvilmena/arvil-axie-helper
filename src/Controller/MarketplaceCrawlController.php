@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\CrawlAxieResultRepository;
+use App\Repository\CrawlResultAxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,11 +20,16 @@ class MarketplaceCrawlController extends AbstractController
      * @var CrawlAxieResultRepository
      */
     private $crawlAxieResultRepo;
+    /**
+     * @var CrawlResultAxieRepository
+     */
+    private $crawlResultAxieRepository;
 
-    public function __construct(MarketplaceCrawlRepository $crawlRepo, CrawlAxieResultRepository $crawlAxieResultRepo) {
+    public function __construct(MarketplaceCrawlRepository $crawlRepo, CrawlAxieResultRepository $crawlAxieResultRepo, CrawlResultAxieRepository $crawlResultAxieRepository) {
 
         $this->crawlRepo = $crawlRepo;
         $this->crawlAxieResultRepo = $crawlAxieResultRepo;
+        $this->crawlResultAxieRepository = $crawlResultAxieRepository;
     }
 
     /**
@@ -42,7 +48,7 @@ class MarketplaceCrawlController extends AbstractController
         $_data['$watchlistEntity'] = $crawlEntity->getMarketplaceWatchlist();
 
         if ( null !== $crawlEntity ) {
-            $axieResults = $this->crawlAxieResultRepo->findBy(['crawl' => $crawlEntity], ['priceUsd' => 'ASC']);
+            $axieResults = $this->crawlResultAxieRepository->findBy(['crawlUlid' => $crawlEntity->getCrawlSessionUlid(), 'marketplaceWatchlist' => $crawlEntity->getMarketplaceWatchlist()], ['date' => 'DESC']);
         } else {
             $axieResults = null;
         }

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\AxieHistoryRepository;
 use App\Repository\AxieRepository;
 use App\Repository\CrawlAxieResultRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,12 +20,17 @@ class AxieController extends AbstractController
      * @var CrawlAxieResultRepository
      */
     private $crawlAxieResultRepo;
+    /**
+     * @var AxieHistoryRepository
+     */
+    private $axieHistoryRepo;
 
-    public function __construct(AxieRepository $axieRepo, CrawlAxieResultRepository $crawlAxieResultRepo)
+    public function __construct(AxieRepository $axieRepo, CrawlAxieResultRepository $crawlAxieResultRepo, AxieHistoryRepository $axieHistoryRepo)
     {
 
         $this->axieRepo = $axieRepo;
         $this->crawlAxieResultRepo = $crawlAxieResultRepo;
+        $this->axieHistoryRepo = $axieHistoryRepo;
     }
 
     /**
@@ -40,7 +46,7 @@ class AxieController extends AbstractController
 
         $data = [];
         $data['$axieEntity'] = $axieEntity;
-        $data['$crawlAxieResults'] = $this->crawlAxieResultRepo->findBy(['axie' => $axieEntity], ['id' => 'DESC']);
+        $data['$crawlAxieResults'] = $this->axieHistoryRepo->findBy(['axie' => $axieEntity], ['id' => 'DESC']);
 
         return $this->render('axie/id.html.twig', [
             'data' =>  $data,

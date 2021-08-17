@@ -171,6 +171,7 @@ class WatchlistController extends AbstractController
                 foreach($crawls as $crawl) {
                     $chartData[] = $this->serializer->normalize($crawl, null, [
                         AbstractNormalizer::ATTRIBUTES => [
+                            'id',
                             'crawlDate',
                             'averagePriceUsd',
                             'lowestPriceUsd',
@@ -189,6 +190,7 @@ class WatchlistController extends AbstractController
                 $_data['$chartData']['lowestPriceUsd'] = array_column($chartData, 'lowestPriceUsd');
                 $_data['$chartData']['averagePriceUsd'] = array_column($chartData, 'averagePriceUsd');
                 $_data['$chartData']['secondLowestPriceUsd'] = array_column($chartData, 'secondLowestPriceUsd');
+                $_data['$chartData']['id'] = array_column($chartData, 'id');
             } else {
                 $_data['$chartData'] = null;
             }
