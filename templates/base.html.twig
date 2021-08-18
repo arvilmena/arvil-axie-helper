@@ -64,4 +64,42 @@
     </nav>
         {% block body %}{% endblock %}
     </body>
+
+
+    <script>
+        $(document).ready(function() {
+            var notified = [];
+            function fetchNotification() {
+                if (!Notification) {
+                    $('body').append('<h4 style="color:red">*Browser does not support Web Notification</h4>');
+                    return;
+                }
+                if (Notification.permission !== "granted")
+                    Notification.requestPermission();
+                else {
+                    var jxhr = $.get("{{ path('api_realtime_all') }}");
+                    jxhr.done(function(response) {
+                        if ( 0 < response.length ) {
+                            response.forEach(function(node) {
+                                if (notified.includes(node['axieId'])) return;
+                                notified.push(node['axieId']);
+                                var $title = node['axieId'] + ' found!';
+                                var notif = new Notification($title, {
+                                    requireInteraction: true
+                                });
+                                notif.onclick = function() {
+                                    notif.close();
+                                    window.open('https://marketplace.axieinfinity.com/axie/' + node['axieId'], '_blank').focus();
+                                };
+                            });
+                        } else {
+                            console.log('no axie');
+                        }
+                    });
+                }
+            }
+            setInterval(fetchNotification, 60000);
+            fetchNotification();
+        });
+    </script>
 </html>

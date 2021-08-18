@@ -50,6 +50,11 @@ class MarketplaceWatchlist
      */
     private $notifyPrice;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default":"0"})
+     */
+    private $useRealtimePriceMonitoring = false;
+
     public function __construct() {
         $this->crawls = new ArrayCollection();
     }
@@ -145,6 +150,18 @@ class MarketplaceWatchlist
     public function setNotifyPrice(?float $notifyPrice): self
     {
         $this->notifyPrice = $notifyPrice;
+
+        return $this;
+    }
+
+    public function getUseRealtimePriceMonitoring(): ?bool
+    {
+        return $this->useRealtimePriceMonitoring;
+    }
+
+    public function setUseRealtimePriceMonitoring(bool $useRealtimePriceMonitoring): self
+    {
+        $this->useRealtimePriceMonitoring = $useRealtimePriceMonitoring;
 
         return $this;
     }

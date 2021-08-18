@@ -11,6 +11,7 @@ use App\Repository\CrawlAxieResultRepository;
 use App\Repository\CrawlResultAxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Repository\MarketplaceWatchlistRepository;
+use App\Service\RealtimePriceMonitoringService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,6 +47,10 @@ class WatchlistController extends AbstractController
      * @var CrawlResultAxieRepository
      */
     private $crawlResultAxieRepo;
+    /**
+     * @var RealtimePriceMonitoringService
+     */
+    private $realtimePriceMonitoringService;
 
     public function __construct(
         MarketplaceWatchlistRepository $watchlistRepo,
@@ -53,6 +58,7 @@ class WatchlistController extends AbstractController
         AxieRepository $axieRepo,
         CrawlAxieResultRepository $crawlAxieResultRepo,
         CrawlResultAxieRepository $crawlResultAxieRepo,
+        RealtimePriceMonitoringService $realtimePriceMonitoringService,
         SerializerInterface $serializer
     ) {
 
@@ -62,6 +68,15 @@ class WatchlistController extends AbstractController
         $this->crawlAxieResultRepo = $crawlAxieResultRepo;
         $this->serializer = $serializer;
         $this->crawlResultAxieRepo = $crawlResultAxieRepo;
+        $this->realtimePriceMonitoringService = $realtimePriceMonitoringService;
+    }
+
+    /**
+     * @Route("/api/realtime/all", name="api_realtime_all")
+     */
+    public function allRealtimeApi() : Response
+    {
+        return $this->json($this->realtimePriceMonitoringService->getAllPriceHit());
     }
 
     /**
