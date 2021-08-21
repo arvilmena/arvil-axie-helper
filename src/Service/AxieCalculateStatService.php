@@ -60,7 +60,7 @@ class AxieCalculateStatService
         }
     }
 
-    public function recalculate($axie, SymfonyStyle $io = null) {
+    public function recalculate($axie, SymfonyStyle $io = null, $force = false) {
         $output = [];
         if (null !== $io) {
             $this->io = $io;
@@ -75,6 +75,26 @@ class AxieCalculateStatService
             $this->log('axie not found');
             return $output;
         }
+        /*
+            $axieEntity->setAvgAttackPerCard($avgAttackPerCard);
+            $axieEntity->setAvgDefencePerCard($avgDefencePerCard);
+            $axieEntity->setNumberOfZeroEnergyCard($numberOfZeroEnergyCard);
+            $axieEntity->setSumOfCardEnergy($sumOfCardEnergy);
+         */
+        if (
+            false === $force
+            && null !== $axieEntity->getAvgAttackPerCard()
+            && null !== $axieEntity->getAvgDefencePerCard()
+            && null !== $axieEntity->getNumberOfZeroEnergyCard()
+            && null !== $axieEntity->getSumOfCardEnergy()
+        ) {
+            $output['$avgAttackPerCard'] = $axieEntity->getAvgAttackPerCard();
+            $output['$avgDefencePerCard'] = $axieEntity->getAvgDefencePerCard();
+            $output['$sumOfCardEnergy'] = $axieEntity->getSumOfCardEnergy();
+            $output['$numberOfZeroEnergyCard'] = $axieEntity->getNumberOfZeroEnergyCard();
+            $output['$axieEntity'] = $axieEntity;
+            return $output;
+        }
 
         $this->log('calculating atks, defs for axie: ' . $axieEntity->getId());
         $_genes = $axieEntity->getGenes();
@@ -86,6 +106,8 @@ class AxieCalculateStatService
         $numberOfCardAbilities = 0;
         $avgAttackPerCard = 0;
         $avgDefencePerCard = 0;
+        $sumOfCardEnergy = 0;
+        $numberOfZeroEnergyCard = 0;
         /**
          * @var $dominantGenes AxieGenes[]
          */
@@ -107,6 +129,11 @@ class AxieCalculateStatService
             $avgAttackPerCard = $avgAttackPerCard + $cardAttack;
 
             $avgDefencePerCard = $avgDefencePerCard + $cardAbilityEntity->getDefence();
+
+            if ( 0 === (int) $cardAbilityEntity->getEnergy() ) {
+                $numberOfZeroEnergyCard++;
+            }
+            $sumOfCardEnergy = $cardAbilityEntity->getEnergy();
         }
 
         if ( $numberOfCardAbilities !== 4 ) {
@@ -116,11 +143,15 @@ class AxieCalculateStatService
             $avgDefencePerCard = $avgDefencePerCard / $numberOfCardAbilities;
             $axieEntity->setAvgAttackPerCard($avgAttackPerCard);
             $axieEntity->setAvgDefencePerCard($avgDefencePerCard);
+            $axieEntity->setNumberOfZeroEnergyCard($numberOfZeroEnergyCard);
+            $axieEntity->setSumOfCardEnergy($sumOfCardEnergy);
             $this->em->persist($axieEntity);
             $this->em->flush();
 
             $output['$avgAttackPerCard'] = $avgAttackPerCard;
             $output['$avgDefencePerCard'] = $avgDefencePerCard;
+            $output['$sumOfCardEnergy'] = $sumOfCardEnergy;
+            $output['$numberOfZeroEnergyCard'] = $numberOfZeroEnergyCard;
             $output['$axieEntity'] = $axieEntity;
         }
 

@@ -25,6 +25,7 @@ use App\Entity\AxieRawData;
 use App\Entity\CrawlResultAxie;
 use App\Entity\MarketplaceCrawl;
 use App\Entity\MarketplaceWatchlist;
+use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpClient\HttpClient;
@@ -44,17 +45,37 @@ class RealtimePriceMonitoringService
      * @var MarketplaceWatchlistRepository
      */
     private $watchlistRepo;
+    /**
+     * @var WatchlistAxieNotifyValidationService
+     */
+    private $watchlistAxieNotifyValidationService;
+    /**
+     * @var AxieRepository
+     */
+    private $axieRepo;
+    /**
+     * @var AxieFactoryService
+     */
+    private $axieFactoryService;
+    /**
+     * @var AxieDataService
+     */
+    private $axieDataService;
 
-    public function __construct(MarketplaceWatchlistRepository $watchlistRepo) {
+    public function __construct(MarketplaceWatchlistRepository $watchlistRepo, WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService, AxieRepository $axieRepo, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService) {
 
         $this->watchlistRepo = $watchlistRepo;
+        $this->watchlistAxieNotifyValidationService = $watchlistAxieNotifyValidationService;
+        $this->axieRepo = $axieRepo;
+        $this->axieFactoryService = $axieFactoryService;
+        $this->axieDataService = $axieDataService;
     }
 
 
     public function processResponse($response, $output = []) {
 
         $watchlistId = (int) $response->getInfo('user_data')['watchlistId'];
-        $priceNotif = (float) $response->getInfo('user_data')['priceNotif'];
+        $priceNotif = (int) $response->getInfo('user_data')['priceNotif'];
 
         try {
             $statusCode = $response->getStatusCode();
@@ -71,6 +92,9 @@ class RealtimePriceMonitoringService
         if ( ! empty($content['errors']) || empty($content['data']['axies']) || 1 > (int) $content['data']['axies']['total']) {
             return $output;
         } else {
+
+            $axiesToProcess = [];
+
             foreach($content['data']['axies']['results'] as $axie) {
                 // should not be banned.
                 if ( false !== $axie['battleInfo']['banned'] ) {
@@ -88,16 +112,42 @@ class RealtimePriceMonitoringService
 
                 $axieCurrentPriceUSD = (float) $axie['auction']['currentPriceUSD'];
 
-                if ($axieCurrentPriceUSD <= $priceNotif) {
-                    if (!isset($output['notifyPriceAxies'])) {
-                        $output['notifyPriceAxies'] = [];
+                // simple price hit
+                $watchlist = $this->watchlistRepo->find($watchlistId);
+
+                if (
+                    null === $watchlist->getExcludeAvgAtkPerCardLte()
+                    && null === $watchlist->getExcludeWhenSumOfEnergyLte()
+                    && null === $watchlist->getExcludeWhenZeroEnergyCardGte() )
+                 {
+                    if ( $axieCurrentPriceUSD <= $priceNotif ) {
+                        if (!isset($output['notifyPriceAxies'])) {
+                            $output['notifyPriceAxies'] = [];
+                        }
+                        $output['notifyPriceAxies'][] = [
+                            'axieId' => $axie['id'],
+                            'price' => $axieCurrentPriceUSD
+                        ];
                     }
-                    $output['notifyPriceAxies'][] = [
-                        'axieId' => $axie['id'],
-                        'price' => $axieCurrentPriceUSD
-                    ];
+                } else {
+
+                    $axieEntity = $this->axieRepo->find($axie['id']);
+                    if ( null === $axieEntity ) {
+                        $this->axieFactoryService->createAndGetEntity($axie);
+                        $this->axieDataService->processAllUnprocessed(null, [$axie['id']]);
+                        $axieEntity = $this->axieRepo->find($axie['id']);
+                    }
+
+                    if ( true === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
+                        $output['notifyPriceAxies'][] = [
+                            'axieId' => $axie['id'],
+                            'price' => $axieCurrentPriceUSD
+                        ];
+                    }
+
                 }
             }
+
         }
 
         return $output;

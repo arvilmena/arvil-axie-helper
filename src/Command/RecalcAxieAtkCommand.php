@@ -35,7 +35,7 @@ class RecalcAxieAtkCommand extends Command
     {
         $this
             ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
+            ->addOption('force', null, InputOption::VALUE_OPTIONAL, 'Should force recalculate all?')
         ;
     }
 
@@ -48,9 +48,12 @@ class RecalcAxieAtkCommand extends Command
             $io->note(sprintf('You passed an argument: %s', $arg1));
         }
 
-        if ($input->getOption('option1')) {
+        if ($input->getOption('force')) {
             // ...
         }
+
+        $force = $input->getOption('force') ?? false;
+        $force = filter_var($force, FILTER_VALIDATE_BOOLEAN);
 
         $qb = $this->axieRepo->createQueryBuilder('a');
         $axies = $qb
@@ -59,7 +62,7 @@ class RecalcAxieAtkCommand extends Command
             ->getResult();
 
         foreach ($axies as $axie) {
-            $this->axieCalculateStatService->recalculate($axie, $io);
+            $this->axieCalculateStatService->recalculate($axie, $io, $force);
         }
 
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');

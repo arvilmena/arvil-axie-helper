@@ -74,6 +74,10 @@ class CrawlMarketplaceWatchlistService
      * @var NotifyService
      */
     private $notifyService;
+    /**
+     * @var WatchlistAxieNotifyValidationService
+     */
+    private $watchlistAxieNotifyValidationService;
 
     public function __construct(
         EntityManagerInterface $em,
@@ -81,7 +85,8 @@ class CrawlMarketplaceWatchlistService
         AxieRepository $axieRepo,
         AxieRawDataRepository $axieRawDataRepo,
         AxieHistoryRepository $axieHistoryRepo,
-        NotifyService $notifyService
+        NotifyService $notifyService,
+        WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService
     )
     {
         $this->em = $em;
@@ -90,6 +95,7 @@ class CrawlMarketplaceWatchlistService
         $this->axieRawDataRepo = $axieRawDataRepo;
         $this->axieHistoryRepo = $axieHistoryRepo;
         $this->notifyService = $notifyService;
+        $this->watchlistAxieNotifyValidationService = $watchlistAxieNotifyValidationService;
     }
 
     public function log($msg, $type = 'note') {
@@ -159,6 +165,22 @@ class CrawlMarketplaceWatchlistService
             $summedForAverage = 0;
             $prices = [];
             foreach($content['data']['axies']['results'] as $axie) {
+
+                // should not be banned.
+                if ( false !== $axie['battleInfo']['banned'] ) {
+                    continue;
+                }
+
+                if (
+                    !isset($axie['auction']['__typename'])
+                    || ('Auction' !== $axie['auction']['__typename'])
+                    || (empty($axie['auction']['currentPrice']) && 0 !== $axie['auction']['currentPrice'])
+                    || (empty($axie['auction']['currentPriceUSD']) && 0 !== $axie['auction']['currentPriceUSD'])
+                ) {
+                    continue;
+                }
+
+
                 $axieEntity = $this->axieRepo->find((int) $axie['id']);
                 if (null === $axieEntity) {
                     $axieEntity = new Axie((int) $axie['id']);
@@ -176,23 +198,6 @@ class CrawlMarketplaceWatchlistService
                 $rawDataEntity->setRawDataBrief(json_encode($axie));
                 $this->em->persist($rawDataEntity);
                 $this->em->flush();
-
-
-                // should not be banned.
-                if ( false !== $axie['battleInfo']['banned'] ) {
-                    $this->em->persist($axieEntity);
-                    $this->em->flush();
-                    continue;
-                }
-
-                if (
-                    !isset($axie['auction']['__typename'])
-                    || ('Auction' !== $axie['auction']['__typename'])
-                    || (empty($axie['auction']['currentPrice']) && 0 !== $axie['auction']['currentPrice'])
-                    || (empty($axie['auction']['currentPriceUSD']) && 0 !== $axie['auction']['currentPriceUSD'])
-                ) {
-                    continue;
-                }
 
                 $ethDivisor = 1000000000000000000;
                 $axieCurrentPriceUSD = (float) $axie['auction']['currentPriceUSD'];
@@ -273,7 +278,7 @@ class CrawlMarketplaceWatchlistService
                 $this->em->flush();
 
                 
-                if ( $axieCurrentPriceUSD <= $watchlist->getNotifyPrice() && $watchlist->getNotifyPrice() > 0 ) {
+                if ( $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
                     if (!isset($output['notifyPriceAxies'])) {
                         $output['notifyPriceAxies'] = [];
                     }

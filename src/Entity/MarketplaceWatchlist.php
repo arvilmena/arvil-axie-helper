@@ -55,6 +55,21 @@ class MarketplaceWatchlist
      */
     private $useRealtimePriceMonitoring = false;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $excludeWhenZeroEnergyCardGte;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $excludeWhenSumOfEnergyLte;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $excludeAvgAtkPerCardLte;
+
     public function __construct() {
         $this->crawls = new ArrayCollection();
     }
@@ -162,6 +177,42 @@ class MarketplaceWatchlist
     public function setUseRealtimePriceMonitoring(bool $useRealtimePriceMonitoring): self
     {
         $this->useRealtimePriceMonitoring = $useRealtimePriceMonitoring;
+
+        return $this;
+    }
+
+    public function getExcludeWhenZeroEnergyCardGte(): ?int
+    {
+        return $this->excludeWhenZeroEnergyCardGte;
+    }
+
+    public function setExcludeWhenZeroEnergyCardGte(?int $excludeWhenZeroEnergyCardGte): self
+    {
+        $this->excludeWhenZeroEnergyCardGte = $excludeWhenZeroEnergyCardGte;
+
+        return $this;
+    }
+
+    public function getExcludeWhenSumOfEnergyLte(): ?int
+    {
+        return $this->excludeWhenSumOfEnergyLte;
+    }
+
+    public function setExcludeWhenSumOfEnergyLte(?int $excludeWhenSumOfEnergyLte): self
+    {
+        $this->excludeWhenSumOfEnergyLte = $excludeWhenSumOfEnergyLte;
+
+        return $this;
+    }
+
+    public function getExcludeAvgAtkPerCardLte(): ?float
+    {
+        return $this->excludeAvgAtkPerCardLte;
+    }
+
+    public function setExcludeAvgAtkPerCardLte(?float $excludeAvgAtkPerCardLte): self
+    {
+        $this->excludeAvgAtkPerCardLte = $excludeAvgAtkPerCardLte;
 
         return $this;
     }

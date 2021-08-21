@@ -111,15 +111,16 @@ class AxieDataService
     }
 
     public function processAllUnprocessed(SymfonyStyle $io = null, $specificAxieIds = []) {
+        $toProcessCount = count($specificAxieIds);
         if (null !== $io) {
             $this->io = $io;
         }
         if ( empty($specificAxieIds) ) {
             $toProcess = $this->axieRepo->findBy(['isProcessed' => false], ['id' => 'ASC']);
         } else {
-            $this->log('Starting Axie Data population for ' . count($specificAxieIds) . ' Ids: ' . implode(',', $specificAxieIds));
+            $this->log('Starting Axie Data population for ' . $toProcessCount . ' Ids: ' . implode(',', $specificAxieIds));
             $qb = $this->axieRepo->createQueryBuilder('a')
-                ->where('a.isProcessed = false');
+                ->where('a.isProcessed = false OR a.numberOfZeroEnergyCard IS NULL');
 
             $qb->andWhere($qb->expr()->in('a.id', $specificAxieIds))
                 ->orderBy('a.id', 'ASC');
@@ -137,7 +138,16 @@ class AxieDataService
         foreach($_toProcess as $_tp) {
             $responses = [];
 
+            /**
+             * @var $_tp Axie[]
+             */
             foreach($_tp as $axieEntity) {
+
+                if ( true === $axieEntity->getIsProcessed() ) {
+                    $this->log('> axie: ' . $axieEntity->getId() . ' is already processed, will just recalculate stat');
+                    $this->axieCalculateStatService->recalculate($axieEntity, $this->io);
+                    continue;
+                }
 
                 $id = $axieEntity->getId();
 
@@ -354,18 +364,14 @@ class AxieDataService
                         $this->em->persist($axieEntity);
                         $this->em->flush();
 
-                        // calculate avgAttackPerCard / avgDefencePerCard
-                        if ( null === $axieEntity->getAvgAttackPerCard() || null === $axieEntity->getAvgDefencePerCard() ) {
-                            // update the last crawl data as well.
-                            $calculatedStat = $this->axieCalculateStatService->recalculate($axieEntity, $this->io);
-                            if (!empty($calculatedStat)) {
-                                $lastCrawlResult = $this->crawlAxieResultRepo->findOneBy(['axie' => $axieEntity], ['crawlDate' => 'DESC']);
-                                if (null !== $lastCrawlResult && $lastCrawlResult->getPriceUsd() > 0) {
-                                    $axieEntity->setAttackPerUsd($calculatedStat['$avgAttackPerCard'] / $lastCrawlResult->getPriceUsd());
-                                    $axieEntity->setDefencePerUsd($calculatedStat['$avgDefencePerCard'] / $lastCrawlResult->getPriceUsd());
-                                    $this->em->persist($axieEntity);
-                                    $this->em->flush();
-                                }
+                        $calculatedStat = $this->axieCalculateStatService->recalculate($axieEntity, $this->io);
+                        if (!empty($calculatedStat)) {
+                            $lastCrawlResult = $this->crawlAxieResultRepo->findOneBy(['axie' => $axieEntity], ['crawlDate' => 'DESC']);
+                            if (null !== $lastCrawlResult && $lastCrawlResult->getPriceUsd() > 0) {
+                                $axieEntity->setAttackPerUsd($calculatedStat['$avgAttackPerCard'] / $lastCrawlResult->getPriceUsd());
+                                $axieEntity->setDefencePerUsd($calculatedStat['$avgDefencePerCard'] / $lastCrawlResult->getPriceUsd());
+                                $this->em->persist($axieEntity);
+                                $this->em->flush();
                             }
                         }
 
@@ -377,8 +383,13 @@ class AxieDataService
                 }
             } # foreach ($client->stream($responses, 10) as $response => $chunk) {
 
-            $this->log('sleeping for 3 secs');
-            sleep(3);
+            if ($toProcessCount > 1) {
+                $this->log('sleeping for 3 secs');
+                sleep(3);
+            } else {
+                $this->log('sleeping for 1 secs');
+                sleep(1);
+            }
         } # foreach($_toProcess as $_tp)
 
     }

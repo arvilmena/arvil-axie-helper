@@ -143,6 +143,21 @@ class Axie
      */
     private $axieHistories;
 
+    /**
+     * @ORM\OneToOne(targetEntity=AxieNotificationPrice::class, mappedBy="axie", cascade={"persist", "remove"})
+     */
+    private $axieNotificationPrice;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $numberOfZeroEnergyCard;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $sumOfCardEnergy;
+
     public function __construct(int $id) {
         $this->id = $id;
         $this->url = 'https://marketplace.axieinfinity.com/axie/' . $id;
@@ -531,6 +546,47 @@ class Axie
                 $axieHistory->setAxie(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAxieNotificationPrice(): ?AxieNotificationPrice
+    {
+        return $this->axieNotificationPrice;
+    }
+
+    public function setAxieNotificationPrice(AxieNotificationPrice $axieNotificationPrice): self
+    {
+        // set the owning side of the relation if necessary
+        if ($axieNotificationPrice->getAxie() !== $this) {
+            $axieNotificationPrice->setAxie($this);
+        }
+
+        $this->axieNotificationPrice = $axieNotificationPrice;
+
+        return $this;
+    }
+
+    public function getNumberOfZeroEnergyCard(): ?int
+    {
+        return $this->numberOfZeroEnergyCard;
+    }
+
+    public function setNumberOfZeroEnergyCard(?int $numberOfZeroEnergyCard): self
+    {
+        $this->numberOfZeroEnergyCard = $numberOfZeroEnergyCard;
+
+        return $this;
+    }
+
+    public function getSumOfCardEnergy(): ?int
+    {
+        return $this->sumOfCardEnergy;
+    }
+
+    public function setSumOfCardEnergy(?int $sumOfCardEnergy): self
+    {
+        $this->sumOfCardEnergy = $sumOfCardEnergy;
 
         return $this;
     }
