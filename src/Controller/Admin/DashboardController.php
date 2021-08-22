@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\MarketplaceWatchlist;
+use App\Entity\Scholar;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -45,6 +46,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToRoute('Homepage', 'fa fa-home', 'homepage');
         yield MenuItem::linktoDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Marketplace Watchlist', 'fas fa-list', MarketplaceWatchlist::class);
+        yield MenuItem::linkToCrud('Scholars', 'fas fa-list', Scholar::class);
         yield MenuItem::linkToLogout('Logout', 'fas fa-sign-out-alt');
     }
 }
