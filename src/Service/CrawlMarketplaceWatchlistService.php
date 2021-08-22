@@ -278,7 +278,7 @@ class CrawlMarketplaceWatchlistService
                 $this->em->flush();
 
                 
-                if ( $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
+                if ( null !== $watchlist->getNotifyPrice() && $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
                     if (!isset($output['notifyPriceAxies'])) {
                         $output['notifyPriceAxies'] = [];
                     }

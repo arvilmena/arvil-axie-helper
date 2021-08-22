@@ -138,7 +138,7 @@ class RealtimePriceMonitoringService
                         $axieEntity = $this->axieRepo->find($axie['id']);
                     }
 
-                    if ( true === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
+                    if ( null !== $watchlist->getNotifyPrice() && true === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
                         $output['notifyPriceAxies'][] = [
                             'axieId' => $axie['id'],
                             'price' => $axieCurrentPriceUSD

@@ -37,7 +37,7 @@ class WatchlistAxieNotifyValidationService
     public function isWatchlistAllowed(MarketplaceWatchlist $watchlist, Axie $axie, $price) : bool {
 
         // check "price"
-        if ( $watchlist->getNotifyPrice() > 0 && (float) $price > $watchlist->getNotifyPrice()) {
+        if ( null !== $watchlist->getNotifyPrice() && (float) $price > $watchlist->getNotifyPrice()) {
             return false;
         }
 
