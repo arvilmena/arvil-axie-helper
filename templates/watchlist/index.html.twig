@@ -25,11 +25,6 @@
                     {% set chartId = 'chart-' ~ watchlist['$entity'].getId() %}
                     {% set accordionId = 'accordion-' ~ watchlist['$entity'].getId() %}
                     {% set accordionTargetId = 'accordion-target-' ~ watchlist['$entity'].getId() %}
-                    {% if watchlist['$lastCrawlEntity'] %}
-                        {% set accordionTitle = 'Last crawl: ' ~ watchlist['$lastCrawlEntity'].getCrawlDate()|date('F j, Y, g:i a', "Asia/Manila") %}
-                    {% else %}
-                        {% set accordionTitle = 'Last crawl: No data' %}
-                    {% endif %}
                     <tr>
                         <th scope="row">{{ watchlist['$entity'].getId() }}</th>
                         <td>{{ watchlist['$entity'].getName() }}</td>
@@ -42,281 +37,162 @@
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="flush-headingOne">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ accordionTargetId }}" aria-expanded="false" aria-controls="{{ accordionTargetId }}">
-                                            {{ accordionTitle }}
+                                            View Data
                                         </button>
                                     </h2>
                                     <div id="{{ accordionTargetId }}" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#{{ accordionId }}">
-                                        <div class="accordion-body">
 
-                                            <table class="table table-bordered">
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">ID</th>
-                                                    <th scope="col">Date</th>
-                                                    <th scope="col">2nd Lowest</th>
-                                                    <th scope="col">Average</th>
-                                                    <th scope="col">Highest</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                <tr>
-                                                    <th scope="col" colspan="6" class="text-center">Historical prices of 2nd Lowest (first result is unreliable)</th>
-                                                </tr>
-                                                {% for node in [
-                                                    '$lastCrawlEntity',
-                                                    '$lowestToday',
-                                                    '$lowestYesterday',
-                                                    '$lowest3DaysAgo',
-                                                    '$lowestTwoWeeksAgo',
-                                                    '$lowestPastMonth',
-                                                    '$lowestPast6Months'
-                                                ] %}
-                                                    {% if node in watchlist|keys and watchlist[ node ] != null %}
-                                                        <tr>
-                                                            <th scope="row">{{ node }}</th>
-                                                            <td>
-                                                                <a href="{{ path('marketplace_crawl_id', {id: watchlist[ node ].getId() }) }}">{{ watchlist[ node ].getId() }}</a>
-                                                            </td>
-                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
-                                                            <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
-                                                            <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
-                                                            <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                {% endfor %}
-                                                <tr>
-                                                    <th scope="col" colspan="6" class="text-center">Historical averages of all axies excluding the price of the lowest</th>
-                                                </tr>
-                                                {% for node in [
-                                                    '$lowestAverageToday',
-                                                    '$lowestAverageYesterday',
-                                                    '$lowestAverage3DaysAgo',
-                                                    '$lowestAverageTwoWeeksAgo',
-                                                    '$lowestAveragePastMonth',
-                                                    '$lowestAveragePast6Months',
-                                                ] %}
-                                                    {% if node in watchlist|keys and watchlist[ node ] != null %}
-                                                        <tr>
-                                                            <th scope="row">{{ node }}</th>
-                                                            <td><a href="{{ path('marketplace_crawl_id', {id: watchlist[ node ].getId() }) }}">{{ watchlist[ node ].getId() }}</a></td>
-                                                            <td>{{ watchlist[ node ].getCrawlDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
-                                                            <td>{{ watchlist[ node ].getSecondLowestPriceUsd()|format_currency('USD') }}</td>
-                                                            <td>{{ watchlist[ node ].getAveragePriceUsd()|format_currency('USD') }}</td>
-                                                            <td>{{ watchlist[ node ].getHighestPriceUsd()|format_currency('USD') }}</td>
-                                                        </tr>
-                                                    {% endif %}
-                                                {% endfor %}
-                                                </tbody>
-                                            </table>
-
-
-                                            {% if watchlist['$axieResults']|length %}
-                                                <table id="axie-results-{{ watchlist['$entity'].getId() }}" class="table-responsive table-bordered">
-                                                    <thead>
-                                                    <tr>
-                                                        <th scope="col">ID</th>
-                                                        <th scope="col">Hp</th>
-                                                        <th scope="col">Speed</th>
-                                                        <th scope="col">Morale</th>
-                                                        <th scope="col">AttackPerUsd</th>
-                                                        <th scope="col">AvgAttackPerCard</th>
-
-                                                        <th scope="col">AvgDefencePerCard</th>
-                                                        <th scope="col">DefencePerUsd</th>
-
-                                                        <th scope="col">Price and Links</th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                    {% for axie in watchlist['$axieResults'] %}
-                                                        {% set ae = axie.getAxieHistory().getAxie() %}
-                                                        {% set ah = axie.getAxieHistory() %}
-                                                        <tr>
-                                                            <th scope="row">{{ ae.getId() }}</th>
-
-                                                            <td>{{ ae.getHp() }}</td>
-                                                            <td>{{ ae.getSpeed() }}</td>
-                                                            <td>{{ ae.getMorale() }}</td>
-                                                            <td>{{ ae.getAttackPerUsd()|number_format(5) }}</td>
-                                                            <td>{{ ae.getAvgAttackPerCard()|number_format(5) }}</td>
-
-                                                            <td>{{ ae.getAvgDefencePerCard()|number_format(5) }}</td>
-                                                            <td>{{ ae.getDefencePerUsd()|number_format(5) }}</td>
-
-
-                                                            <td data-order="{{ ah.getPriceUsd() }}">
-                                                                {% if ae.getImageUrl() %}
-                                                                    <img class="img-fluid" src="{{ ae.getImageUrl() }}" />
-                                                                {% endif %}
-
-                                                                <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
-                                                                    <small class="text-center" style="margin-left: auto; margin-right: auto; display: block; margin-bottom: 10px;">
-                                                                        Freaks Quality: {{ ae.getQuality()|number_format(2) }}% <br />
-                                                                        Dominant Class Purity: {{ ae.getDominantClassPurity()|number_format(2) }}% <br />
-                                                                        R1 Class Purity: {{ ae.getR1ClassPurity()|number_format(2) }}% <br />
-                                                                        R2 Class Purity: {{ ae.getR2ClassPurity()|number_format(2) }}% <br />
-                                                                        Breed Count: {{ ah.getBreedCount() }}/7 <br />
-                                                                        getSkill: {{ ae.getSkill() }} <br />
-                                                                    </small>
-                                                                </small>
-
-                                                                <div>
-                                                                    <h5 class="truncate font-medium text-center">{{ ah.getPriceEth() }} ETH</h5>
-                                                                    <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">${{ ah.getPriceUsd() }}</h6>
-                                                                    <a href="{{ ae.getUrl() }}" target="_blank">
-                                                                        <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View in Marketplace</h6>
-                                                                    </a>
-                                                                    <a href="{{ path('axie_id', {id: ae.getId() }) }}">
-                                                                        <h6 class="truncate ml-8 text-gray-1 font-medium  text-center">View Axie data</h6>
-                                                                    </a>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                    </tbody>
-                                                </table>
-
-                                                <script>
-                                                    $(document).ready( function () {
-                                                        $('#axie-results-{{ watchlist['$entity'].getId() }}').DataTable({
-                                                            "order": [[ 8, "asc" ]]
-                                                        });
-                                                    } );
-                                                </script>
-                                            {% endif %}
-                                            <style>
-                                            </style>
-
-                                            {% if watchlist['$chartData']|length %}
-                                                <canvas class="chart" id="{{ chartId }}"  width="1000" height="600"></canvas>
-                                                <script>
-
-                                                    (function() {
-
-                                                        const labels = {{ watchlist['$chartData']['crawlDate']|json_encode|raw }};
-                                                        const data = {
-                                                            labels: labels,
-                                                            datasets: [
-                                                                {
-                                                                    label: 'lowestPriceUsd',
-                                                                    data: {{ watchlist['$chartData']['lowestPriceUsd']|json_encode|raw }},
-                                                                    borderColor: 'green',
-                                                                    backgroundColor: 'transparent',
-                                                                    borderWidth: 1,
-                                                                    cubicInterpolationMode: 'monotone',
-                                                                    fill: false,
-                                                                    tension: 0.4
-                                                                },
-                                                                {
-                                                                    label: 'averagePriceUsd',
-                                                                    data: {{ watchlist['$chartData']['averagePriceUsd']|json_encode|raw }},
-                                                                    borderColor: 'blue',
-                                                                    backgroundColor: 'transparent',
-                                                                    borderWidth: 1,
-                                                                    cubicInterpolationMode: 'monotone',
-                                                                    fill: false,
-                                                                    tension: 0.4
-                                                                },
-                                                                {
-                                                                    label: 'secondLowestPriceUsd',
-                                                                    data: {{ watchlist['$chartData']['secondLowestPriceUsd']|json_encode|raw }},
-                                                                    borderColor: 'orange',
-                                                                    backgroundColor: 'transparent',
-                                                                    borderWidth: 1,
-                                                                    cubicInterpolationMode: 'monotone',
-                                                                    fill: false,
-                                                                    tension: 0.4
-                                                                }
-                                                            ]
-                                                        };
-                                                        const config = {
-                                                            type: 'line',
-                                                            data: data,
-                                                            options: {
-                                                                responsive: true,
-                                                                interaction: {
-                                                                    intersect: true,
-                                                                },
-                                                                elements: {
-                                                                    point:{
-                                                                        radius: 0
-                                                                    }
-                                                                },
-                                                                scales: {
-                                                                    x: {
-                                                                        display: true,
-                                                                        title: {
-                                                                            display: true
-                                                                        },
-                                                                        type: 'time',
-                                                                        time: {
-                                                                            displayFormats: {
-                                                                                'millisecond': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'second': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'minute': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'hour': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'day': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'week': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'month': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'quarter': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                                'year': 'dddd, MMMM Do YYYY, h:mm:ss a',
-                                                                            }
-                                                                        }
-                                                                    },
-                                                                    y: {
-                                                                        display: true,
-                                                                        title: {
-                                                                            display: true,
-                                                                            text: 'Value'
-                                                                        },
-                                                                    }
-                                                                },
-                                                                plugins: {
-                                                                    zoom: {
-                                                                        zoom: {
-                                                                            wheel: {
-                                                                                enabled: true,
-                                                                            },
-                                                                            pinch: {
-                                                                                enabled: true
-                                                                            },
-                                                                            mode: 'xy',
-                                                                        },
-                                                                        pan: {
-                                                                            enabled: true,
-                                                                            mode: 'xy',
-                                                                        },
-                                                                    },
-                                                                    tooltip: {
-                                                                        mode: 'index',
-                                                                        intersect: false
-                                                                    },
-                                                                    hover: {
-                                                                        mode: 'index',
-                                                                        intersect: false
-                                                                    }
-                                                                }
-                                                            },
-                                                        };
-
-                                                        var myChart = new Chart(
-                                                            document.getElementById('{{ chartId }}'),
-                                                            config
-                                                        );
-
-                                                    })();
-
-                                                </script>
-                                            {% endif %}
-                                        </div>
-                                        {# .accordion-body #}
                                     </div>
                                 </div>
                             </div>
                             {# .accordion #}
                         </td>
                     </tr>
+
+                    <script>
+                        jQuery(document).ready(function($) {
+                           var $accordion =  $('#{{ accordionId }}');
+
+                           var loadDataTable = function() {
+                               $accordion.find('#axie-results-{{ watchlist['$entity'].getId() }}').DataTable({
+                                   "order": [[ 8, "asc" ]]
+                               });
+                           };
+
+                           var loadChart = function() {
+                               const chartData = $accordion.find('#{{ chartId }}').data('chart-data');
+                               const labels = chartData['labels'];
+                               const data = {
+                                   labels: labels,
+                                   datasets: [
+                                       {
+                                           label: 'lowestPriceUsd',
+                                           data: chartData['lowestPriceUsd'],
+                                           borderColor: 'green',
+                                           backgroundColor: 'transparent',
+                                           borderWidth: 1,
+                                           cubicInterpolationMode: 'monotone',
+                                           fill: false,
+                                           tension: 0.4
+                                       },
+                                       {
+                                           label: 'averagePriceUsd',
+                                           data: chartData['averagePriceUsd'],
+                                           borderColor: 'blue',
+                                           backgroundColor: 'transparent',
+                                           borderWidth: 1,
+                                           cubicInterpolationMode: 'monotone',
+                                           fill: false,
+                                           tension: 0.4
+                                       },
+                                       {
+                                           label: 'secondLowestPriceUsd',
+                                           data: chartData['secondLowestPriceUsd'],
+                                           borderColor: 'orange',
+                                           backgroundColor: 'transparent',
+                                           borderWidth: 1,
+                                           cubicInterpolationMode: 'monotone',
+                                           fill: false,
+                                           tension: 0.4
+                                       }
+                                   ]
+                               };
+                               const config = {
+                                   type: 'line',
+                                   data: data,
+                                   options: {
+                                       responsive: true,
+                                       interaction: {
+                                           intersect: true,
+                                       },
+                                       elements: {
+                                           point:{
+                                               radius: 0
+                                           }
+                                       },
+                                       scales: {
+                                           x: {
+                                               display: true,
+                                               title: {
+                                                   display: true
+                                               },
+                                               type: 'time',
+                                               time: {
+                                                   displayFormats: {
+                                                       'millisecond': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'second': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'minute': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'hour': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'day': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'week': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'month': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'quarter': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                       'year': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                                   }
+                                               }
+                                           },
+                                           y: {
+                                               display: true,
+                                               title: {
+                                                   display: true,
+                                                   text: 'Value'
+                                               },
+                                           }
+                                       },
+                                       plugins: {
+                                           zoom: {
+                                               zoom: {
+                                                   wheel: {
+                                                       enabled: true,
+                                                   },
+                                                   pinch: {
+                                                       enabled: true
+                                                   },
+                                                   mode: 'xy',
+                                               },
+                                               pan: {
+                                                   enabled: true,
+                                                   mode: 'xy',
+                                               },
+                                           },
+                                           tooltip: {
+                                               mode: 'index',
+                                               intersect: false
+                                           },
+                                           hover: {
+                                               mode: 'index',
+                                               intersect: false
+                                           }
+                                       }
+                                   },
+                               };
+
+                               var myChart = new Chart(
+                                   document.getElementById('{{ chartId }}'),
+                                   config
+                               );
+                           }
+
+                           $accordion.on('show.bs.collapse', function () {
+
+                                if ($accordion.hasClass('js-axie-loaded')) return;
+
+                                $.get( "{{ path('api_watchlist_overview_id', {id: watchlist['$entity'].getId()}) }}", function() {
+                                    $accordion.addClass('js-axie-loaded');
+                                })
+                                    .done( function( resp ) {
+                                        $accordion.find('#{{ accordionTargetId }}').html( resp );
+
+                                        loadDataTable();
+                                        loadChart();
+
+
+                                    } )
+                                ;
+
+                            })
+                        });
+                    </script>
                 {% endfor %}
                 </tbody>
             </table>
