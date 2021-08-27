@@ -106,7 +106,7 @@ class CrawlMarketplaceWatchlistService
 
     public function getMaxAllowedPrice(): int
     {
-        return 700;
+        return 750;
     }
 
     public function processResponse($crawlSessionUlid, $response, $output = [], SymfonyStyle $io = null) {
@@ -209,6 +209,11 @@ class CrawlMarketplaceWatchlistService
                     break;
                 }
 
+                if ( false === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, null) ) {
+                    $this->log( '> axie: #' . $axieEntity->getId() . ' didnt passed the watchlist restriction, moving on.. for watchlist id: ' . $watchlistId ) ;
+                    continue;
+                }
+
                 if ( $axieEntity->getAvgAttackPerCard() > 0 && $axieEntity->getAvgDefencePerCard() > 0 ) {
                     $axieEntity
                         ->setAttackPerUsd( $axieEntity->getAvgAttackPerCard() / $axieCurrentPriceUSD )
@@ -288,7 +293,7 @@ class CrawlMarketplaceWatchlistService
                     $output['notifyPriceAxies'][$watchlist->getId()][] = $axieEntity;
                 }
 
-            }
+            } # foreach($content['data']['axies']['results'] as $axie)
 
             usort($prices, function($axie1, $axie2) {
                 if ($axie1['axie']['auction']['currentPriceUSD'] == $axie2['axie']['auction']['currentPriceUSD']) {

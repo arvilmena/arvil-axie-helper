@@ -34,10 +34,10 @@ use App\Repository\MarketplaceWatchlistRepository;
 class WatchlistAxieNotifyValidationService
 {
 
-    public function isWatchlistAllowed(MarketplaceWatchlist $watchlist, Axie $axie, $price) : bool {
+    public function isWatchlistAllowed(MarketplaceWatchlist $watchlist, Axie $axie, $price = null) : bool {
 
-        // check "price"
-        if ( null !== $watchlist->getNotifyPrice() && (float) $price > $watchlist->getNotifyPrice()) {
+        // check "price" if it is passed
+        if ( null !== $price && null !== $watchlist->getNotifyPrice() && (float) $price > $watchlist->getNotifyPrice()) {
             return false;
         }
 
