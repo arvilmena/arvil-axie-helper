@@ -147,8 +147,9 @@ HTML;
                 if (
                     null === $watchlist->getExcludeAvgAtkPerCardLte()
                     && null === $watchlist->getExcludeWhenSumOfEnergyLte()
-                    && null === $watchlist->getExcludeWhenZeroEnergyCardGte() )
-                 {
+                    && null === $watchlist->getExcludeWhenZeroEnergyCardGte()
+                    && null === $watchlist->getExcludeFreaksQualityLte()
+                ) {
                     if ( $axieCurrentPriceUSD <= $priceNotif ) {
                         if (!isset($output['notifyPriceAxies'])) {
                             $output['notifyPriceAxies'] = [];
