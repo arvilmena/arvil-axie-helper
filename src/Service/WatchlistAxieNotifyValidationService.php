@@ -68,6 +68,14 @@ class WatchlistAxieNotifyValidationService
             return false;
         }
 
+        // check "exclude_freaks_quality_lte"
+        if (
+            null !== $axie->getQuality()
+            && null !== $watchlist->getExcludeFreaksQualityLte()
+            && (float) $axie->getQuality() <= $watchlist->getExcludeFreaksQualityLte()) {
+            return false;
+        }
+
         return true;
 
     }

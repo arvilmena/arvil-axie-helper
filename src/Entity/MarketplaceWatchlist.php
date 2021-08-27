@@ -70,6 +70,11 @@ class MarketplaceWatchlist
      */
     private $excludeAvgAtkPerCardLte;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $excludeFreaksQualityLte;
+
     public function __construct() {
         $this->crawls = new ArrayCollection();
     }
@@ -213,6 +218,18 @@ class MarketplaceWatchlist
     public function setExcludeAvgAtkPerCardLte(?float $excludeAvgAtkPerCardLte): self
     {
         $this->excludeAvgAtkPerCardLte = $excludeAvgAtkPerCardLte;
+
+        return $this;
+    }
+
+    public function getExcludeFreaksQualityLte(): ?float
+    {
+        return $this->excludeFreaksQualityLte;
+    }
+
+    public function setExcludeFreaksQualityLte(?float $excludeFreaksQualityLte): self
+    {
+        $this->excludeFreaksQualityLte = $excludeFreaksQualityLte;
 
         return $this;
     }

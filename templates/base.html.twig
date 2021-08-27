@@ -25,6 +25,8 @@
             <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@0.1.1"></script>
             <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.1.1/chartjs-plugin-zoom.min.js" integrity="sha512-NxlWEbNbTV6acWnTsWRLIiwzOw0IwHQOYUCKBiu/NqZ+5jSy7gjMbpYI+/4KvaNuZ1qolbw+Vnd76pbIUYEG8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.7/jquery.timeago.min.js" integrity="sha512-RlGrSmkje9EE/FXpJKWf0fvOlg4UULy/blvNsviBX9LFwMj/uewXVoanRbxTIRDXy/0A3fBQppTmJ/qOboJzmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
             {#{{ encore_entry_script_tags('app') }}#}
         {% endblock %}
     </head>
@@ -63,15 +65,41 @@
         </div>
     </nav>
         {% block body %}{% endblock %}
+
+        <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;height: 100vh;overflow-y: scroll;"></div>
     </body>
 
 
     <script>
         $(document).ready(function() {
+            var $body = $('body');
+            var $toastContainer = $('#toast-container');
+            var $timeAgos = [];
             var notified = [];
+            var autoUpdateTimeAgos = function() {
+                if ($timeAgos.length < 1) return;
+                $timeAgos.forEach(function($timeAgo) {
+                    var timeAgoMsg = $.timeago($timeAgo.attr('datetime'));
+                    $timeAgo.text(timeAgoMsg);
+                });
+            };
+            var insertToast = function(toastHtml, selector) {
+                $toastContainer.append(toastHtml);
+
+                var $toast = $toastContainer.find(selector);
+                var toast = new window.bootstrap.Toast($toast.get(0))
+                toast.show();
+                var $timeAgo = $toast.find('time.timeago');
+                $timeAgos.push($timeAgo);
+                $timeAgo.timeago();
+
+                $toast.find('a.js-view-open').click(function() {
+                    toast.hide();
+                });
+            }
             function fetchNotification() {
                 if (!Notification) {
-                    $('body').append('<h4 style="color:red">*Browser does not support Web Notification</h4>');
+                    $body.append('<h4 style="color:red">*Browser does not support Web Notification</h4>');
                     return;
                 }
                 if (Notification.permission !== "granted")
@@ -83,7 +111,7 @@
                             response.forEach(function(node) {
                                 if (notified.includes(node['axieId'])) return;
                                 notified.push(node['axieId']);
-                                var $title = node['axieId'] + ' found!';
+                                var $title = node['axieId'] + ' found for: ' + node['watchlistName'];
                                 var notif = new Notification($title, {
                                     requireInteraction: true
                                 });
@@ -91,6 +119,8 @@
                                     notif.close();
                                     window.open('https://marketplace.axieinfinity.com/axie/' + node['axieId'], '_blank').focus();
                                 };
+
+                                insertToast(node['toastHtml'], '#toast-' + node['axieId']);
                             });
                         } else {
                             console.log('no axie');
@@ -100,6 +130,7 @@
             }
             setInterval(fetchNotification, 25000);
             fetchNotification();
+            setInterval(autoUpdateTimeAgos, 60000);
         });
     </script>
 </html>

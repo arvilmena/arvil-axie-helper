@@ -71,6 +71,37 @@ class RealtimePriceMonitoringService
         $this->axieDataService = $axieDataService;
     }
 
+    public function generateToastNotification($data) {
+
+        $image = $data['axieImg'];
+        $id = $data['axieId'];
+        $url = 'https://marketplace.axieinfinity.com/axie/' . $data['axieId'];
+        $watchlistName = $data['watchlistName'];
+        /**
+         * TODO: maybe depend the datetime to user's timezone which we can get if we pass it as argument of AJAX call.
+         */
+        $currentDatetime = (new \DateTime('now'))->format(\DateTime::RFC3339);
+
+        return <<<HTML
+<div id="toast-{$id}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-url="{$url}" data-bs-autohide="false">
+  <div class="toast-header">
+    <img src="{$image}" class="rounded me-2 img-fluid" style="width: 50px;">
+    <strong class="me-auto">{$id}</strong>
+    <small><time class="timeago" datetime="{$currentDatetime}">{$currentDatetime}</time></small>
+    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+  </div>
+  <div class="toast-body">
+    <p>
+        Under: {$watchlistName}
+    </p>
+    <p>
+        <a class="js-view-open" href="{$url}" target="_blank">View</a>
+    </p>
+  </div>
+</div>
+HTML;
+
+    }
 
     public function processResponse($response, $output = []) {
 
@@ -92,8 +123,6 @@ class RealtimePriceMonitoringService
         if ( ! empty($content['errors']) || empty($content['data']['axies']) || 1 > (int) $content['data']['axies']['total']) {
             return $output;
         } else {
-
-            $axiesToProcess = [];
 
             foreach($content['data']['axies']['results'] as $axie) {
                 // should not be banned.
@@ -124,10 +153,14 @@ class RealtimePriceMonitoringService
                         if (!isset($output['notifyPriceAxies'])) {
                             $output['notifyPriceAxies'] = [];
                         }
-                        $output['notifyPriceAxies'][] = [
+                        $data = [
                             'axieId' => $axie['id'],
-                            'price' => $axieCurrentPriceUSD
+                            'axieImg' => $axie['image'],
+                            'price' => $axieCurrentPriceUSD,
+                            'watchlistName' => $watchlist->getName()
                         ];
+                        $data['toastHtml'] = $this->generateToastNotification($data);
+                        $output['notifyPriceAxies'][] = $data;
                     }
                 } else {
 
@@ -139,10 +172,14 @@ class RealtimePriceMonitoringService
                     }
 
                     if ( null !== $watchlist->getNotifyPrice() && true === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
-                        $output['notifyPriceAxies'][] = [
+                        $data = [
                             'axieId' => $axie['id'],
-                            'price' => $axieCurrentPriceUSD
+                            'axieImg' => $axie['image'],
+                            'price' => $axieCurrentPriceUSD,
+                            'watchlistName' => $watchlist->getName()
                         ];
+                        $data['toastHtml'] = $this->generateToastNotification($data);
+                        $output['notifyPriceAxies'][] = $data;
                     }
 
                 }
