@@ -52,9 +52,11 @@
                     <script>
                         jQuery(document).ready(function($) {
                            var $accordion =  $('#{{ accordionId }}');
+                           var chartJs = null;
+                           var dataTable = null;
 
                            var loadDataTable = function() {
-                               $accordion.find('#axie-results-{{ watchlist['$entity'].getId() }}').DataTable({
+                               dataTable = $accordion.find('#axie-results-{{ watchlist['$entity'].getId() }}').DataTable({
                                    "order": [[ 8, "asc" ]]
                                });
                            };
@@ -167,23 +169,36 @@
                                    },
                                };
 
-                               var myChart = new Chart(
-                                   document.getElementById('{{ chartId }}'),
+                               chartJs = new Chart(
+                                   $('#{{ chartId }}').get(0),
                                    config
                                );
                            }
 
                            $accordion.on('show.bs.collapse', function () {
 
-                                if ($accordion.hasClass('js-axie-loaded')) return;
+                                if ($accordion.hasClass('js-axie-loading')) return;
+
+                               if (null !== dataTable) {
+                                   dataTable.destroy();
+                                   dataTable = null;
+                               }
+
+                               if (null !== chartJs) {
+                                   chartJs.destroy();
+                                   chartJs = null;
+                               }
+                               $accordion.find('#{{ accordionTargetId }}').html('');
 
                                 $.get( "{{ path('api_watchlist_overview_id', {id: watchlist['$entity'].getId()}) }}", function() {
-                                    $accordion.addClass('js-axie-loaded');
+                                    $accordion.addClass('js-axie-loading');
                                 })
                                     .done( function( resp ) {
+
                                         $accordion.find('#{{ accordionTargetId }}').html( resp );
                                         loadDataTable();
                                         loadChart();
+                                        $accordion.removeClass('js-axie-loading');
                                     } )
                                 ;
                             })

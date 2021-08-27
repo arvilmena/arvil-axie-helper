@@ -139,7 +139,7 @@
             averagePriceUsd: watchlist['$chartData']['averagePriceUsd'],
             secondLowestPriceUsd: watchlist['$chartData']['secondLowestPriceUsd']
         } %}
-        <canvas class="chart" id="{{ chartId }}" data-chart-data="{{ chartData|json_encode|raw }}" width="1000" height="600"></canvas>
+        <canvas class="chart" id="{{ chartId }}" data-chart-data='{{ chartData|json_encode|replace({"\'": "&#039"})|raw }}' width="1000" height="600"></canvas>
     {% endif %}
 
 </div> {# .accordion-body #}
