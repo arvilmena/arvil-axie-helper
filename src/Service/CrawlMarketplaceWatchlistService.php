@@ -210,7 +210,7 @@ class CrawlMarketplaceWatchlistService
                 }
 
                 if ( false === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, null) ) {
-                    $this->log( '> axie: #' . $axieEntity->getId() . ' didnt passed the watchlist restriction, moving on.. for watchlist id: ' . $watchlistId ) ;
+                    $this->log( '> axie: #' . $axieEntity->getId() . ' didnt passed the watchlist restriction, moving on.. for watchlist id: ' . $watchlistId . ' ' . $watchlist->getName()) ;
                     continue;
                 }
 
@@ -256,7 +256,6 @@ class CrawlMarketplaceWatchlistService
                 if (
                     null === $axieHistory
                     || $axieHistory->getPriceEth() !== $ethPrice
-                    || $axieHistory->getPriceUsd() !== $usdPrice
                     || $axieHistory->getBreedCount() !== (int) $axie['breedCount']
                 ) {
                     $axieHistory = new AxieHistory( new \DateTime('now') );
@@ -268,6 +267,17 @@ class CrawlMarketplaceWatchlistService
                     ;
                     $this->em->persist($axieHistory);
                     $this->em->persist($axieEntity);
+                    $this->em->flush();
+                } elseif (
+                    null !== $axieHistory
+                    && $axieHistory->getPriceEth() === $ethPrice
+                    && $axieHistory->getBreedCount() === (int) $axie['breedCount']
+                    && $axieHistory->getPriceUsd() !== $usdPrice
+                ) {
+                    $axieHistory
+                        ->setPriceUsd($usdPrice)
+                    ;
+                    $this->em->persist($axieHistory);
                     $this->em->flush();
                 }
 
