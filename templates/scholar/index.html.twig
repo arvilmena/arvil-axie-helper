@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ScholarController!{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+<div class="example-wrapper">
+
+    {% if scholars|length > 0 %}
+
+        {% for scholarId, node in scholars %}
+
+            <h1>{{ node['$scholarEntity'].getName() }}</h1>
+
+            {% for label in ['gameSlp', 'elo', 'rank'] %}
+            <h2>{{ label }}</h2>
+            <canvas class="chart" id="scholar-chart-{{ scholarId }}-{{ label }}" data-chart-data='{{ node['$chartData']|json_encode|replace({"\'": "&#039"})|raw }}' width="1000" height="600"></canvas>
+            {% endfor %}
+
+
+
+        <script>
+
+            jQuery(document).ready(function($) {
+
+                var loadChart = function(currentValue) {
+                    console.log('currentValue', currentValue);
+                    const chartData = $('#scholar-chart-{{ scholarId }}-' + currentValue['label']).data('chart-data');
+                    console.log('chartData', chartData);
+                    const labels = chartData['dates'];
+                    const data = {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: currentValue['label'],
+                                data: chartData[ currentValue['label'] ],
+                                borderColor: currentValue['color'],
+                                backgroundColor: 'transparent',
+                                borderWidth: 1,
+                                cubicInterpolationMode: 'monotone',
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    };
+                    const config = {
+                        type: 'line',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            interaction: {
+                                intersect: true,
+                            },
+                            elements: {
+                                point:{
+                                    radius: 0
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    display: true,
+                                    title: {
+                                        display: true
+                                    },
+                                    type: 'time',
+                                    time: {
+                                        displayFormats: {
+                                            'millisecond': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'second': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'minute': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'hour': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'day': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'week': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'month': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'quarter': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                            'year': 'dddd, MMMM Do YYYY, h:mm:ss a',
+                                        }
+                                    }
+                                },
+                                y: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Value'
+                                    },
+                                }
+                            },
+                            plugins: {
+                                zoom: {
+                                    zoom: {
+                                        wheel: {
+                                            enabled: true,
+                                        },
+                                        pinch: {
+                                            enabled: true
+                                        },
+                                        mode: 'xy',
+                                    },
+                                    pan: {
+                                        enabled: true,
+                                        mode: 'xy',
+                                    },
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false
+                                },
+                                hover: {
+                                    mode: 'index',
+                                    intersect: false
+                                }
+                            }
+                        },
+                    };
+
+                    chartJs = new Chart(
+                        $('#scholar-chart-{{ scholarId }}-' + currentValue['label']).get(0),
+                        config
+                    );
+                }
+
+                const types = [
+                    {label: 'gameSlp', color: 'green'},
+                    {label: 'elo', color: 'blue'},
+                    {label: 'rank', color: 'orange'}
+                ];
+
+                types.forEach(function(currentValue,index) {
+                    console.log('currentValue', currentValue);
+                    loadChart(currentValue);
+                });
+            });
+
+
+        </script>
+
+        {% endfor %}
+
+    {% endif %}
+
+</div>
+{% endblock %}

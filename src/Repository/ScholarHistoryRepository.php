@@ -19,6 +19,24 @@ class ScholarHistoryRepository extends ServiceEntityRepository
         parent::__construct($registry, ScholarHistory::class);
     }
 
+    public function getScholarHistories(int $scholarId, \DateTimeInterface $afterOrOn = null) {
+
+        $qb = $this->createQueryBuilder('s')
+            ->where('s.scholar = :scholar')
+            ->setParameter('scholar', $scholarId)
+        ;
+
+        if (null !== $afterOrOn) {
+            $qb
+                ->andWhere('s.date >= :afterOrOn')
+                ->setParameter('afterOrOn', $afterOrOn)
+            ;
+        }
+
+        return $qb->orderBy('s.date', 'ASC')->getQuery()->getResult();
+
+    }
+
     // /**
     //  * @return ScholarHistory[] Returns an array of ScholarHistory objects
     //  */
