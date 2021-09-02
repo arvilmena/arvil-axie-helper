@@ -61,7 +61,7 @@ class ScholarTrackerService
         $responses = [];
 
         foreach ($scholars as $scholar ) {
-            $uri = "https://api.axie.com.ph/get-slp/" . $scholar->getRoninAddress();
+            $uri = "https://api.lunaciarover.com/stats/0x" . trim($scholar->getRoninAddress(), 'ronin:');
 
             $responses[] = $client->request('GET', $uri, [
                 'user_data' => [
@@ -94,12 +94,12 @@ class ScholarTrackerService
                     $history = new ScholarHistory( new \DateTime('now') );
                     $history
                         ->setScholar($scholar)
-                        ->setGameSlp( $result['slpData']['gameSlp'] )
-                        ->setTotalSlp( $result['slpData']['totalSlp'] )
-                        ->setRoninSlp( $result['slpData']['roninSlp'] )
-                        ->setLastClaim( (new \DateTime())->setTimestamp( $result['slpData']['lastClaim'] )->setTimezone(new \DateTimeZone('UTC')) )
-                        ->setElo( $result['leaderboardData']['elo'] )
-                        ->setRank( $result['leaderboardData']['rank'] )
+                        ->setGameSlp( $result['in_game_slp'] )
+                        ->setTotalSlp( $result['total_slp'] )
+                        ->setRoninSlp( $result['ronin_slp'] )
+                        ->setLastClaim( (new \DateTime())->setTimestamp( $result['last_claim_timestamp'] )->setTimezone(new \DateTimeZone('UTC')) )
+                        ->setElo( $result['mmr'] )
+                        ->setRank( $result['rank'] )
                     ;
 
                     $this->em->persist($history);
