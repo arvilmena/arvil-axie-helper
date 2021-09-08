@@ -203,7 +203,7 @@ HTML;
         foreach ($watchlists as $watchlist) {
             if ( empty($watchlist->getNotifyPrice()) ) continue;
 
-            $numberOfResults = 24;
+            $numberOfResults = 9;
             $payload = json_decode($watchlist->getPayload(), true);
             $payload['variables']['from'] = 0;
             $payload['variables']['size'] = $numberOfResults;
