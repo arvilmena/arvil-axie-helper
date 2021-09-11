@@ -86,7 +86,7 @@ class AxieCalculateStatService
             && null !== $axieEntity->getAvgAttackPerCard()
             && null !== $axieEntity->getAvgDefencePerCard()
             && null !== $axieEntity->getNumberOfZeroEnergyCard()
-            && null !== $axieEntity->getSumOfCardEnergy()
+            && (null !== $axieEntity->getSumOfCardEnergy() || $axieEntity->getSumOfCardEnergy() > 1 )
         ) {
             $output['$avgAttackPerCard'] = $axieEntity->getAvgAttackPerCard();
             $output['$avgDefencePerCard'] = $axieEntity->getAvgDefencePerCard();
@@ -133,7 +133,7 @@ class AxieCalculateStatService
             if ( 0 === (int) $cardAbilityEntity->getEnergy() ) {
                 $numberOfZeroEnergyCard++;
             }
-            $sumOfCardEnergy = $cardAbilityEntity->getEnergy();
+            $sumOfCardEnergy = $sumOfCardEnergy + $cardAbilityEntity->getEnergy();
         }
 
         if ( $numberOfCardAbilities !== 4 ) {

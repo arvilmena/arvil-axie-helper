@@ -34,10 +34,15 @@ use App\Repository\MarketplaceWatchlistRepository;
 class WatchlistAxieNotifyValidationService
 {
 
-    public function isWatchlistAllowed(MarketplaceWatchlist $watchlist, Axie $axie, $price = null) : bool {
+    public function isWatchlistAllowed(MarketplaceWatchlist $watchlist, Axie $axie, $price = null, $priceEth = null) : bool {
 
         // check "price" if it is passed
         if ( null !== $price && null !== $watchlist->getNotifyPrice() && (float) $price > $watchlist->getNotifyPrice()) {
+            return false;
+        }
+
+        // check "price eth" if it is passed
+        if ( null !== $priceEth && null !== $watchlist->getNotifyPriceEth() && (float) $priceEth > $watchlist->getNotifyPriceEth()) {
             return false;
         }
 
@@ -73,6 +78,15 @@ class WatchlistAxieNotifyValidationService
             null !== $axie->getQuality()
             && null !== $watchlist->getExcludeFreaksQualityLte()
             && (float) $axie->getQuality() <= $watchlist->getExcludeFreaksQualityLte()) {
+            return false;
+        }
+
+        // check "exclude_when_sum_of_energy_gte"
+        if (
+            null !== $watchlist->getExcludeWhenSumOfEnergyGte()
+            && null !== $axie->getSumOfCardEnergy()
+            && $axie->getSumOfCardEnergy() >= $watchlist->getExcludeWhenSumOfEnergyGte()
+        ) {
             return false;
         }
 

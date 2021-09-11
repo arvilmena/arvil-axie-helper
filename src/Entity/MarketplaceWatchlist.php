@@ -51,6 +51,11 @@ class MarketplaceWatchlist
     private $notifyPrice;
 
     /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $notifyPriceEth;
+
+    /**
      * @ORM\Column(type="boolean", options={"default":"0"})
      */
     private $useRealtimePriceMonitoring = false;
@@ -74,6 +79,11 @@ class MarketplaceWatchlist
      * @ORM\Column(type="float", nullable=true)
      */
     private $excludeFreaksQualityLte;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $excludeWhenSumOfEnergyGte;
 
     public function __construct() {
         $this->crawls = new ArrayCollection();
@@ -230,6 +240,30 @@ class MarketplaceWatchlist
     public function setExcludeFreaksQualityLte(?float $excludeFreaksQualityLte): self
     {
         $this->excludeFreaksQualityLte = $excludeFreaksQualityLte;
+
+        return $this;
+    }
+
+    public function getNotifyPriceEth(): ?float
+    {
+        return $this->notifyPriceEth;
+    }
+
+    public function setNotifyPriceEth(?float $notifyPriceEth): self
+    {
+        $this->notifyPriceEth = $notifyPriceEth;
+
+        return $this;
+    }
+
+    public function getExcludeWhenSumOfEnergyGte(): ?int
+    {
+        return $this->excludeWhenSumOfEnergyGte;
+    }
+
+    public function setExcludeWhenSumOfEnergyGte(?int $excludeWhenSumOfEnergyGte): self
+    {
+        $this->excludeWhenSumOfEnergyGte = $excludeWhenSumOfEnergyGte;
 
         return $this;
     }

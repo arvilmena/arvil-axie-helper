@@ -106,7 +106,9 @@ HTML;
     public function processResponse($response, $output = []) {
 
         $watchlistId = (int) $response->getInfo('user_data')['watchlistId'];
-        $priceNotif = (int) $response->getInfo('user_data')['priceNotif'];
+        $priceNotif = (float) $response->getInfo('user_data')['priceNotif'];
+        $axieCurrentPriceEthNotif = (float) $response->getInfo('user_data')['ethPriceNotif'];
+        $ethDivisor = 1000000000000000000;
 
         try {
             $statusCode = $response->getStatusCode();
@@ -140,6 +142,7 @@ HTML;
                 }
 
                 $axieCurrentPriceUSD = (float) $axie['auction']['currentPriceUSD'];
+                $axieCurrentPriceEth = $axie['auction']['currentPrice'] / $ethDivisor;
 
                 // simple price hit
                 $watchlist = $this->watchlistRepo->find($watchlistId);
@@ -149,8 +152,9 @@ HTML;
                     && null === $watchlist->getExcludeWhenSumOfEnergyLte()
                     && null === $watchlist->getExcludeWhenZeroEnergyCardGte()
                     && null === $watchlist->getExcludeFreaksQualityLte()
+                    && null === $watchlist->getExcludeWhenSumOfEnergyGte()
                 ) {
-                    if ( $axieCurrentPriceUSD <= $priceNotif ) {
+                    if ( $axieCurrentPriceUSD <= $priceNotif || $axieCurrentPriceEth <= $axieCurrentPriceEthNotif ) {
                         if (!isset($output['notifyPriceAxies'])) {
                             $output['notifyPriceAxies'] = [];
                         }
@@ -172,11 +176,15 @@ HTML;
                         $axieEntity = $this->axieRepo->find($axie['id']);
                     }
 
-                    if ( null !== $watchlist->getNotifyPrice() && true === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
+                    if (
+                        ( null !== $watchlist->getNotifyPrice() || null !== $watchlist->getNotifyPriceEth() )
+                        && true === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD, $axieCurrentPriceEth)
+                    ) {
                         $data = [
                             'axieId' => $axie['id'],
                             'axieImg' => $axie['image'],
                             'price' => $axieCurrentPriceUSD,
+                            'priceEth' => $axieCurrentPriceEth,
                             'watchlistName' => $watchlist->getName()
                         ];
                         $data['toastHtml'] = $this->generateToastNotification($data);
@@ -201,7 +209,7 @@ HTML;
         $output = [];
         $output['notifyPriceAxies'] = [];
         foreach ($watchlists as $watchlist) {
-            if ( empty($watchlist->getNotifyPrice()) ) continue;
+            if ( empty($watchlist->getNotifyPrice()) && empty($watchlist->getNotifyPriceEth()) ) continue;
 
             $numberOfResults = 9;
             $payload = json_decode($watchlist->getPayload(), true);
@@ -214,6 +222,7 @@ HTML;
                     'user_data' => [
                         'watchlistId' => $watchlist->getId(),
                         'priceNotif' => $watchlist->getNotifyPrice(),
+                        'ethPriceNotif' => $watchlist->getNotifyPriceEth(),
                         'request' => json_encode($payload)
                     ]
                 ],

@@ -209,7 +209,8 @@ class CrawlMarketplaceWatchlistService
                     break;
                 }
 
-                if ( false === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, null) ) {
+                // validate without considering price
+                if ( false === $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, null, null) ) {
                     $this->log( '> axie: #' . $axieEntity->getId() . ' didnt passed the watchlist restriction, moving on.. for watchlist id: ' . $watchlistId . ' ' . $watchlist->getName()) ;
                     continue;
                 }
@@ -293,7 +294,10 @@ class CrawlMarketplaceWatchlistService
                 $this->em->flush();
 
                 
-                if ( null !== $watchlist->getNotifyPrice() && $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD) ) {
+                if (
+                    ( null !== $watchlist->getNotifyPrice() || null !== $watchlist->getNotifyPriceEth() )
+                    && $this->watchlistAxieNotifyValidationService->isWatchlistAllowed($watchlist, $axieEntity, $axieCurrentPriceUSD, $ethPrice)
+                ) {
                     if (!isset($output['notifyPriceAxies'])) {
                         $output['notifyPriceAxies'] = [];
                     }
