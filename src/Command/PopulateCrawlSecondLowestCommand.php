@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use App\Entity\CrawlAxieResult;
 use App\Entity\MarketplaceCrawl;
 use App\Entity\MarketplaceWatchlist;
 use App\Repository\AxieRepository;
@@ -75,29 +74,33 @@ class PopulateCrawlSecondLowestCommand extends Command
             /**
              * @var MarketplaceCrawl $crawl
              */
+            // TODO: use the new CrawlResultAxie Entity
+            $io->error('feature not supported, see TODO: at ' . __FILE__);
+            return Command::FAILURE;
             foreach($crawls as $crawl) {
-                $axies = $crawl->getCrawlAxieResults()->toArray();
-                if (sizeof($axies) < 1) {
-                    continue;
-                }
-                usort($axies, function($axie1, $axie2) {
-                    /**
-                     * @var CrawlAxieResult $axie1
-                     * @var CrawlAxieResult $axie2
-                     */
-                   if ($axie1->getPriceUsd() === $axie2->getPriceUsd()) {
-                       return 0;
-                   }
-                    return ($axie1->getPriceUsd() < $axie2->getPriceUsd()) ? -1 : 1;
-                });
-                if (sizeof($axies) >= 2) {
-                    $crawl->setSecondLowestPriceUsd($axies[1]->getPriceUsd());
-                    $crawl->setSecondLowestPriceAxie($axies[1]->getAxie());
-                } else {
-                    $crawl->setSecondLowestPriceUsd($axies[0]->getPriceUsd());
-                    $crawl->setSecondLowestPriceAxie($axies[1]->getAxie());
-                }
-                $this->em->persist($crawl);
+
+//                $axies = $crawl->getCrawlAxieResults()->toArray();
+//                if (sizeof($axies) < 1) {
+//                    continue;
+//                }
+//                usort($axies, function($axie1, $axie2) {
+//                    /**
+//                     * @var CrawlAxieResult $axie1
+//                     * @var CrawlAxieResult $axie2
+//                     */
+//                   if ($axie1->getPriceUsd() === $axie2->getPriceUsd()) {
+//                       return 0;
+//                   }
+//                    return ($axie1->getPriceUsd() < $axie2->getPriceUsd()) ? -1 : 1;
+//                });
+//                if (sizeof($axies) >= 2) {
+//                    $crawl->setSecondLowestPriceUsd($axies[1]->getPriceUsd());
+//                    $crawl->setSecondLowestPriceAxie($axies[1]->getAxie());
+//                } else {
+//                    $crawl->setSecondLowestPriceUsd($axies[0]->getPriceUsd());
+//                    $crawl->setSecondLowestPriceAxie($axies[1]->getAxie());
+//                }
+//                $this->em->persist($crawl);
             }
             $this->em->flush();
         }

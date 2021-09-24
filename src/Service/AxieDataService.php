@@ -27,6 +27,7 @@ use App\Entity\AxiePart;
 use App\Entity\AxieRawData;
 use App\Repository\AxieCardAbilityRepository;
 use App\Repository\AxieGenesRepository;
+use App\Repository\AxieHistoryRepository;
 use App\Repository\AxiePartRepository;
 use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
@@ -75,13 +76,13 @@ class AxieDataService
      */
     private $axieRawDataRepo;
     /**
-     * @var CrawlAxieResultRepository
-     */
-    private $crawlAxieResultRepo;
-    /**
      * @var AxieCalculateStatService
      */
     private $axieCalculateStatService;
+    /**
+     * @var AxieHistoryRepository
+     */
+    private $axieHistoryRepo;
 
     public function __construct(
         AxieRepository $axieRepo,
@@ -89,9 +90,9 @@ class AxieDataService
         AxiePartRepository $axiePartRepo,
         AxieCardAbilityRepository $axieCardAbilityRepo,
         AxieRawDataRepository $axieRawDataRepo,
-        CrawlAxieResultRepository $crawlAxieResultRepo,
         AxieCalculateStatService $axieCalculateStatService,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        AxieHistoryRepository $axieHistoryRepo
     )
     {
         $this->axieGenesRepo = $axieGenesRepo;
@@ -100,8 +101,8 @@ class AxieDataService
         $this->axieRepo = $axieRepo;
         $this->axieRawDataRepo = $axieRawDataRepo;
         $this->em = $em;
-        $this->crawlAxieResultRepo = $crawlAxieResultRepo;
         $this->axieCalculateStatService = $axieCalculateStatService;
+        $this->axieHistoryRepo = $axieHistoryRepo;
     }
 
     public function log($msg, $type = 'note') {
@@ -366,10 +367,10 @@ class AxieDataService
 
                         $calculatedStat = $this->axieCalculateStatService->recalculate($axieEntity, $this->io);
                         if (!empty($calculatedStat)) {
-                            $lastCrawlResult = $this->crawlAxieResultRepo->findOneBy(['axie' => $axieEntity], ['crawlDate' => 'DESC']);
-                            if (null !== $lastCrawlResult && $lastCrawlResult->getPriceUsd() > 0) {
-                                $axieEntity->setAttackPerUsd($calculatedStat['$avgAttackPerCard'] / $lastCrawlResult->getPriceUsd());
-                                $axieEntity->setDefencePerUsd($calculatedStat['$avgDefencePerCard'] / $lastCrawlResult->getPriceUsd());
+                            $lastAxieHistory = $this->axieHistoryRepo->findOneBy(['axie' => $axieEntity], ['date' => 'DESC']);
+                            if (null !== $lastAxieHistory && $lastAxieHistory->getPriceUsd() > 0) {
+                                $axieEntity->setAttackPerUsd($calculatedStat['$avgAttackPerCard'] / $lastAxieHistory->getPriceUsd());
+                                $axieEntity->setDefencePerUsd($calculatedStat['$avgDefencePerCard'] / $lastAxieHistory->getPriceUsd());
                                 $this->em->persist($axieEntity);
                                 $this->em->flush();
                             }

@@ -17,19 +17,14 @@ class AxieController extends AbstractController
      */
     private $axieRepo;
     /**
-     * @var CrawlAxieResultRepository
-     */
-    private $crawlAxieResultRepo;
-    /**
      * @var AxieHistoryRepository
      */
     private $axieHistoryRepo;
 
-    public function __construct(AxieRepository $axieRepo, CrawlAxieResultRepository $crawlAxieResultRepo, AxieHistoryRepository $axieHistoryRepo)
+    public function __construct(AxieRepository $axieRepo, AxieHistoryRepository $axieHistoryRepo)
     {
 
         $this->axieRepo = $axieRepo;
-        $this->crawlAxieResultRepo = $crawlAxieResultRepo;
         $this->axieHistoryRepo = $axieHistoryRepo;
     }
 

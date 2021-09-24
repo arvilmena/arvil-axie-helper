@@ -17,18 +17,13 @@ class MarketplaceCrawlController extends AbstractController
      */
     private $crawlRepo;
     /**
-     * @var CrawlAxieResultRepository
-     */
-    private $crawlAxieResultRepo;
-    /**
      * @var CrawlResultAxieRepository
      */
     private $crawlResultAxieRepository;
 
-    public function __construct(MarketplaceCrawlRepository $crawlRepo, CrawlAxieResultRepository $crawlAxieResultRepo, CrawlResultAxieRepository $crawlResultAxieRepository) {
+    public function __construct(MarketplaceCrawlRepository $crawlRepo, CrawlResultAxieRepository $crawlResultAxieRepository) {
 
         $this->crawlRepo = $crawlRepo;
-        $this->crawlAxieResultRepo = $crawlAxieResultRepo;
         $this->crawlResultAxieRepository = $crawlResultAxieRepository;
     }
 

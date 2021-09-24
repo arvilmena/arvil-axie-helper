@@ -2,9 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Axie;
-use App\Entity\CrawlAxieResult;
-use App\Entity\CrawlResultAxie;
 use App\Entity\MarketplaceWatchlist;
 use App\Repository\AxieRepository;
 use App\Repository\CrawlAxieResultRepository;
@@ -12,7 +9,6 @@ use App\Repository\CrawlResultAxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use App\Service\RealtimePriceMonitoringService;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -36,10 +32,6 @@ class WatchlistController extends AbstractController
      */
     private $axieRepo;
     /**
-     * @var CrawlAxieResultRepository
-     */
-    private $crawlAxieResultRepo;
-    /**
      * @var SerializerInterface
      */
     private $serializer;
@@ -56,7 +48,6 @@ class WatchlistController extends AbstractController
         MarketplaceWatchlistRepository $watchlistRepo,
         MarketplaceCrawlRepository $crawlRepo,
         AxieRepository $axieRepo,
-        CrawlAxieResultRepository $crawlAxieResultRepo,
         CrawlResultAxieRepository $crawlResultAxieRepo,
         RealtimePriceMonitoringService $realtimePriceMonitoringService,
         SerializerInterface $serializer
@@ -65,7 +56,6 @@ class WatchlistController extends AbstractController
         $this->watchlistRepo = $watchlistRepo;
         $this->crawlRepo = $crawlRepo;
         $this->axieRepo = $axieRepo;
-        $this->crawlAxieResultRepo = $crawlAxieResultRepo;
         $this->serializer = $serializer;
         $this->crawlResultAxieRepo = $crawlResultAxieRepo;
         $this->realtimePriceMonitoringService = $realtimePriceMonitoringService;
