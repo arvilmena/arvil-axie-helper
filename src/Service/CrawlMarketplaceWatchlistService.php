@@ -118,7 +118,7 @@ class CrawlMarketplaceWatchlistService
         $watchlistId = (int) $response->getInfo('user_data')['watchlistId'];
         $watchlist = $this->watchlistRepo->find($watchlistId);
 
-        $crawl = new MarketplaceCrawl($response->getInfo('user_data')['request'], new \DateTime('now', new \DateTimeZone('UTC')));
+        $crawl = new MarketplaceCrawl(new \DateTime('now', new \DateTimeZone('UTC')));
         $crawl
             ->setCrawlSessionUlid($crawlSessionUlid)
             ->setMarketplaceWatchlist($watchlist)
@@ -142,12 +142,6 @@ class CrawlMarketplaceWatchlistService
         }
 
         $content = $response->toArray();
-
-        $crawl
-            ->setResponse(json_encode($content))
-        ;
-        $this->em->persist($crawl);
-        $this->em->flush();
 
         if ( ! empty($content['errors']) || empty($content['data']['axies']) || 1 > (int) $content['data']['axies']['total']) {
             $crawl->setIsValid(false);
