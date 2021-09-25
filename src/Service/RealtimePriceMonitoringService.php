@@ -162,12 +162,12 @@ HTML;
                     }
                 } else {
 
-                    $axieEntity = $this->axieRepo->find($axie['id']);
-                    if ( null === $axieEntity ) {
-                        $this->axieFactoryService->createAndGetEntity($axie);
+                    $createOrGet = $this->axieFactoryService->createOrGetEntity($axie);
+
+                    if ( true === $createOrGet['$isAdded'] ) {
                         $this->axieDataService->processAllUnprocessed(null, [$axie['id']]);
-                        $axieEntity = $this->axieRepo->find($axie['id']);
                     }
+                    $axieEntity = $createOrGet['$axieEntity'];
 
                     if (
                         ( null !== $watchlist->getNotifyPrice() || null !== $watchlist->getNotifyPriceEth() )

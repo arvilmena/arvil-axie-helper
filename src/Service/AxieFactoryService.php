@@ -49,14 +49,16 @@ class AxieFactoryService
         $this->em = $em;
     }
 
-    public function createAndGetEntity(array $axie) {
+    public function createOrGetEntity(array $axie): array
+    {
 
-        $output = [];
+        $isAdded = false;
 
         $axieEntity = $this->axieRepo->find((int) $axie['id']);
 
         if (null === $axieEntity) {
             $axieEntity = new Axie((int) $axie['id']);
+            $isAdded = true;
         }
         if (empty($axieEntity->getImageUrl()) && ! empty($axie['image'])) {
             $axieEntity->setImageUrl(trim($axie['image']));
@@ -65,9 +67,10 @@ class AxieFactoryService
         $this->em->persist($axieEntity);
         $this->em->flush();
 
-        $output['axiesAdded'][] = (int) $axie['id'];
-
-        return $output;
+        return [
+          '$axieEntity' => $axieEntity,
+          '$isAdded' => $isAdded,
+        ];
 
     }
 
