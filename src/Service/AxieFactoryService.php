@@ -20,10 +20,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Axie;
-use App\Entity\AxieHistory;
-use App\Entity\AxieRawData;
-use App\Entity\CrawlResultAxie;
-use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -42,19 +38,14 @@ class AxieFactoryService
      */
     private $axieRepo;
     /**
-     * @var AxieRawDataRepository
-     */
-    private $axieRawDataRepo;
-    /**
      * @var EntityManagerInterface
      */
     private $em;
 
-    public function __construct(AxieRepository $axieRepo, AxieRawDataRepository $axieRawDataRepository, EntityManagerInterface $em)
+    public function __construct(AxieRepository $axieRepo, EntityManagerInterface $em)
     {
 
         $this->axieRepo = $axieRepo;
-        $this->axieRawDataRepo = $axieRawDataRepository;
         $this->em = $em;
     }
 
@@ -71,12 +62,6 @@ class AxieFactoryService
             $axieEntity->setImageUrl(trim($axie['image']));
         }
 
-        $rawDataEntity = $this->axieRawDataRepo->find($axieEntity->getId());
-        if (null === $rawDataEntity) {
-            $rawDataEntity = new AxieRawData($axieEntity);
-        }
-        $rawDataEntity->setRawDataBrief(json_encode($axie));
-        $this->em->persist($rawDataEntity);
         $this->em->persist($axieEntity);
         $this->em->flush();
 

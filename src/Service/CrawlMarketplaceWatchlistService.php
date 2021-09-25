@@ -21,12 +21,9 @@ namespace App\Service;
 
 use App\Entity\Axie;
 use App\Entity\AxieHistory;
-use App\Entity\AxieRawData;
-use App\Entity\CrawlAxieResult;
 use App\Entity\CrawlResultAxie;
 use App\Entity\MarketplaceCrawl;
 use App\Repository\AxieHistoryRepository;
-use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,10 +57,6 @@ class CrawlMarketplaceWatchlistService
      * @var AxieRepository
      */
     private $axieRepo;
-    /**
-     * @var AxieRawDataRepository
-     */
-    private $axieRawDataRepo;
 
     private $io;
     /**
@@ -83,7 +76,6 @@ class CrawlMarketplaceWatchlistService
         EntityManagerInterface $em,
         MarketplaceWatchlistRepository $watchlistRepo,
         AxieRepository $axieRepo,
-        AxieRawDataRepository $axieRawDataRepo,
         AxieHistoryRepository $axieHistoryRepo,
         NotifyService $notifyService,
         WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService
@@ -92,7 +84,6 @@ class CrawlMarketplaceWatchlistService
         $this->em = $em;
         $this->watchlistRepo = $watchlistRepo;
         $this->axieRepo = $axieRepo;
-        $this->axieRawDataRepo = $axieRawDataRepo;
         $this->axieHistoryRepo = $axieHistoryRepo;
         $this->notifyService = $notifyService;
         $this->watchlistAxieNotifyValidationService = $watchlistAxieNotifyValidationService;
@@ -184,14 +175,6 @@ class CrawlMarketplaceWatchlistService
                 }
 
                 $output['axiesAdded'][] = (int) $axie['id'];
-
-                $rawDataEntity = $this->axieRawDataRepo->find($axieEntity->getId());
-                if (null === $rawDataEntity) {
-                    $rawDataEntity = new AxieRawData($axieEntity);
-                }
-                $rawDataEntity->setRawDataBrief(json_encode($axie));
-                $this->em->persist($rawDataEntity);
-                $this->em->flush();
 
                 $ethDivisor = 1000000000000000000;
                 $axieCurrentPriceUSD = (float) $axie['auction']['currentPriceUSD'];

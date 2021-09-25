@@ -104,11 +104,6 @@ class Axie
     private $quality;
 
     /**
-     * @ORM\OneToOne(targetEntity=AxieRawData::class, mappedBy="axie", cascade={"persist", "remove"})
-     */
-    private $axieRawData;
-
-    /**
      * @ORM\OneToMany(targetEntity=AxieGenePassingRate::class, mappedBy="axie", orphanRemoval=true)
      */
     private $genePassingRates;
@@ -385,23 +380,6 @@ class Axie
     public function setQuality(?float $quality): self
     {
         $this->quality = $quality;
-
-        return $this;
-    }
-
-    public function getAxieRawData(): ?AxieRawData
-    {
-        return $this->axieRawData;
-    }
-
-    public function setAxieRawData(AxieRawData $axieRawData): self
-    {
-        // set the owning side of the relation if necessary
-        if ($axieRawData->getAxie() !== $this) {
-            $axieRawData->setAxie($this);
-        }
-
-        $this->axieRawData = $axieRawData;
 
         return $this;
     }

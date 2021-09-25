@@ -24,14 +24,10 @@ use App\Entity\AxieCardAbility;
 use App\Entity\AxieGenePassingRate;
 use App\Entity\AxieGenes;
 use App\Entity\AxiePart;
-use App\Entity\AxieRawData;
 use App\Repository\AxieCardAbilityRepository;
-use App\Repository\AxieGenesRepository;
 use App\Repository\AxieHistoryRepository;
 use App\Repository\AxiePartRepository;
-use App\Repository\AxieRawDataRepository;
 use App\Repository\AxieRepository;
-use App\Repository\CrawlAxieResultRepository;
 use App\Util\AxieGeneUtil;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -47,10 +43,6 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
  */
 class AxieDataService
 {
-    /**
-     * @var AxieGenesRepository
-     */
-    private $axieGenesRepo;
     /**
      * @var AxiePartRepository
      */
@@ -72,10 +64,6 @@ class AxieDataService
      */
     private $em;
     /**
-     * @var AxieRawDataRepository
-     */
-    private $axieRawDataRepo;
-    /**
      * @var AxieCalculateStatService
      */
     private $axieCalculateStatService;
@@ -86,20 +74,16 @@ class AxieDataService
 
     public function __construct(
         AxieRepository $axieRepo,
-        AxieGenesRepository $axieGenesRepo,
         AxiePartRepository $axiePartRepo,
         AxieCardAbilityRepository $axieCardAbilityRepo,
-        AxieRawDataRepository $axieRawDataRepo,
         AxieCalculateStatService $axieCalculateStatService,
         EntityManagerInterface $em,
         AxieHistoryRepository $axieHistoryRepo
     )
     {
-        $this->axieGenesRepo = $axieGenesRepo;
         $this->axiePartRepo = $axiePartRepo;
         $this->axieCardAbilityRepo = $axieCardAbilityRepo;
         $this->axieRepo = $axieRepo;
-        $this->axieRawDataRepo = $axieRawDataRepo;
         $this->em = $em;
         $this->axieCalculateStatService = $axieCalculateStatService;
         $this->axieHistoryRepo = $axieHistoryRepo;
@@ -230,14 +214,6 @@ class AxieDataService
                             ->setQuality($axieGenes->getQuality())
                         ;
                         $this->em->persist($axieEntity);
-                        $this->em->flush();
-
-                        $rawDataEntity = $this->axieRawDataRepo->find($axieEntity);
-                        if (null === $rawDataEntity) {
-                            $rawDataEntity = new AxieRawData($axieEntity);
-                        }
-                        $rawDataEntity->setRawData(json_encode($axieData));
-                        $this->em->persist($rawDataEntity);
                         $this->em->flush();
 
                         $axieParts = $axieEntity->getParts();

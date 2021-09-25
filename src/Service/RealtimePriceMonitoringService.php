@@ -19,15 +19,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\Axie;
-use App\Entity\AxieHistory;
-use App\Entity\AxieRawData;
-use App\Entity\CrawlResultAxie;
-use App\Entity\MarketplaceCrawl;
-use App\Entity\MarketplaceWatchlist;
 use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
