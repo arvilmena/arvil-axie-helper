@@ -78,7 +78,7 @@ class CrawlRecentlySoldAxieService
     }
 
     public function getMinUsdPrice() {
-        return 400;
+        return 480;
     }
 
     private function log($msg, $type = 'note') : void {
