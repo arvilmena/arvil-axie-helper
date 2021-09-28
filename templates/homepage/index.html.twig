@@ -10,7 +10,7 @@
             <div class="col col-12 col-md-4">
 
                 {% for id in [2279441, 6462565, 3788420] %}
-                    <div id="axie--{{ id }}" class="axie" data-bs-toggle="tooltip" data-bs-html="true" title='{% include '_partials/axie--data.twig' %}' data-bs-sanitize="false" data-bs-trigger="manual">
+                    <div id="axie--{{ id }}" class="axie" data-template="axie--data__{{ id }}">
                         <div class="axie--column">
                             <div class="axie--image">
                                 <img src="https://storage.googleapis.com/assets.axieinfinity.com/axies/6502116/axie/axie-full-transparent.png" alt="" class="img-fluid">
@@ -37,7 +37,7 @@
                             </div>
                         </div>
                         <div class="axie--column">
-                            <div id="axie--data--{{ id }}">
+                            <div id="axie--data__{{ id }}">
                                 {% include '_partials/axie--data.twig' %}
                             </div>
                         </div>
@@ -55,14 +55,26 @@
 
                 <script>
                 {% for id in [2279441, 6462565, 3788420] %}
+                (function() {
                     tippy('#axie--{{ id }}', {
                         content(reference) {
                             const id = reference.getAttribute('data-template');
                             const template = document.getElementById(id);
-                            return template.innerHTML;
+                            return '<div class="axie--data-tooltip">' + template.innerHTML + '</div>';
                         },
                         allowHTML: true,
+                        trigger: 'click',
+                        onHide() {
+                            return false;
+                        }
                     });
+
+                    var tippyInstance = document.getElementById('axie--{{ id }}')._tippy;
+
+                    console.log('tippyInstance', tippyInstance);
+
+                    tippyInstance.show();
+                })();
                 {% endfor %}
                 </script>
 
