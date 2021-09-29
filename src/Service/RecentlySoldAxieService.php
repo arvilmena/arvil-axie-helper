@@ -1,8 +1,8 @@
 <?php
 /**
- * CrawlRecentlySoldAxieService.php file summary.
+ * RecentlySoldAxieService.php file summary.
  *
- * CrawlRecentlySoldAxieService.php file description.
+ * RecentlySoldAxieService.php file description.
  *
  * @link       https://project.com
  *
@@ -34,13 +34,13 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 /**
- * Class CrawlRecentlySoldAxieService.
+ * Class RecentlySoldAxieService.
  *
- * Class CrawlRecentlySoldAxieService description.
+ * Class RecentlySoldAxieService description.
  *
  * @since 1.0.0
  */
-class CrawlRecentlySoldAxieService
+class RecentlySoldAxieService
 {
 
     /**

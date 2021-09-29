@@ -56,7 +56,7 @@ Encore
     })
 
     // enables Sass/SCSS support
-    //.enableSassLoader()
+    .enableSassLoader()
 
     // uncomment if you use TypeScript
     //.enableTypeScriptLoader()
@@ -70,6 +70,13 @@ Encore
 
     // uncomment if you're having problems with a jQuery plugin
     //.autoProvidejQuery()
+
+    .configureDevServerOptions(options => {
+        options.https = {
+            key: '/Applications/MAMP/Library/OpenSSL/certs/axie-infinity-helper.test.key',
+            cert: '/Applications/MAMP/Library/OpenSSL/certs/axie-infinity-helper.test.crt',
+        }
+    })
 ;
 
 module.exports = Encore.getWebpackConfig();

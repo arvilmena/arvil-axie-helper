@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Service\CrawlRecentlySoldAxieService;
+use App\Service\RecentlySoldAxieService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -23,9 +23,9 @@ class ApiController extends AbstractController
     /**
      * @Route("/api/recently_sold", name="api_recently_sold")
      */
-    public function recentlySold( CrawlRecentlySoldAxieService $crawlRecentlySoldAxieService ): Response
+    public function recentlySold(RecentlySoldAxieService $recentlySoldAxieService ): Response
     {
-        $crawlRecentlySoldAxieService->crawl();
+        $recentlySoldAxieService->crawl();
         
         return $this->render('api/index.html.twig', [
             'controller_name' => 'ApiController',

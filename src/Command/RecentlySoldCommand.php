@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\CrawlRecentlySoldAxieService;
+use App\Service\RecentlySoldAxieService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,14 +15,14 @@ class RecentlySoldCommand extends Command
     protected static $defaultName = 'app:recently-sold';
     protected static $defaultDescription = 'Add a short description for your command';
     /**
-     * @var CrawlRecentlySoldAxieService
+     * @var RecentlySoldAxieService
      */
-    private $crawlRecentlySoldAxieService;
+    private $recentlySoldAxieService;
 
-    public function __construct(string $name = null, CrawlRecentlySoldAxieService $crawlRecentlySoldAxieService)
+    public function __construct(string $name = null, RecentlySoldAxieService $recentlySoldAxieService)
     {
         parent::__construct($name);
-        $this->crawlRecentlySoldAxieService = $crawlRecentlySoldAxieService;
+        $this->recentlySoldAxieService = $recentlySoldAxieService;
     }
 
     protected function configure(): void
@@ -37,7 +37,7 @@ class RecentlySoldCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $this->crawlRecentlySoldAxieService->crawl($io);
+        $this->recentlySoldAxieService->crawl($io);
 
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
 
