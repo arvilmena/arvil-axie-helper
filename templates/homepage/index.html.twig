@@ -13,8 +13,6 @@
 
                     {% for data in recentlySold['$recentlySold'] %}
                         {% set axie = data['$axieEntity'] %}
-                        {{ dump(data) }}
-                        {{ dump(data['$axieEntity']) }}
                         <div class="axie">
                             <div class="axie--column axie--column__axie-image-and-text">
                                 <div class="axie--image">
