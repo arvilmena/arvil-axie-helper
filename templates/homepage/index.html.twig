@@ -11,35 +11,38 @@
 
                 <section class="Recently-Sold-Axies">
 
-                    {% for id in [2279441, 6462565, 3788420] %}
+                    {% for data in recentlySold['$recentlySold'] %}
+                        {% set axie = data['$axieEntity'] %}
+                        {{ dump(data) }}
+                        {{ dump(data['$axieEntity']) }}
                         <div class="axie">
                             <div class="axie--column axie--column__axie-image-and-text">
                                 <div class="axie--image">
-                                    <img src="https://storage.googleapis.com/assets.axieinfinity.com/axies/6502116/axie/axie-full-transparent.png" alt="" class="img-fluid" id="axie--{{ id }}" data-template="axie--data__{{ id }}">
+                                    <img src="{{ axie.imageUrl }}" alt="{{ axie.id }}" class="img-fluid" id="axie--{{ axie.id }}" data-template="axie--data__{{ axie.id }}">
                                 </div>
                                 <div class="axie--text">
                                     <div class="axie--text-row">
-                                        <span class="axie--class-icon axie--class-icon__aqua"></span>
-                                        <span class="axie--id">#{{ '6502116'|number_format }}</span>
+                                        <span class="axie--class-icon axie--class-icon__{{ axie.class }}"></span>
+                                        <span class="axie--id">#{{ axie.id|number_format }}</span>
                                     </div>
                                     <div class="axie--text-row">
-                                        <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> 2, H: 51, S: 37, M: 45, P: 42%
+                                        <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> 2, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality }}%
                                     </div>
                                     <div class="axie--text-row">
-                                        <span class="fs-5">Ξ 0.09 <small class="fs-6">$200</small></span>
+                                        <span class="fs-5">Ξ {{ data.price_eth|number_format(4) }} <small class="fs-6">${{ data.price_usd|number_format(2) }}</small></span>
                                     </div>
                                     <div class="axie--text-row axie--text-row__wrap">
                                         <div>
-                                            <a href="#">View in marketplace</a>
+                                            <a href="{{ axie.url }}">View in marketplace</a>
                                         </div>
                                         <div>
-                                            <a href="#">View recorded data</a>
+                                            <a href="{{ path('axie_id', {id: axie.id }) }}">View recorded data</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="axie--column axie--column__axie-data">
-                                <div class="w-100" id="axie--data__{{ id }}">
+                                <div class="w-100" id="axie--data__{{ axie.id }}">
                                     {% include '_partials/axie--data.twig' %}
                                 </div>
                             </div>
@@ -47,8 +50,9 @@
                     {% endfor %}
 
                     <div style="display: none;">
-                        {% for id in [2279441, 6462565, 3788420] %}
-                            <div id="axie--data--{{ id }}s">
+                        {% for data in recentlySold['$recentlySold'] %}
+                            {% set axie = data['$axieEntity'] %}
+                            <div id="axie--data--{{ axie.id }}s">
                                 {% include '_partials/axie--data.twig' %}
                             </div>
                         {% endfor %}
@@ -56,9 +60,10 @@
 
 
                     <script>
-                        {% for id in [2279441, 6462565, 3788420] %}
+                        {% for data in recentlySold['$recentlySold'] %}
+                        {% set axie = data['$axieEntity'] %}
                         (function() {
-                            tippy('#axie--{{ id }}', {
+                            tippy('#axie--{{ axie.id }}', {
                                 content(reference) {
                                     const id = reference.getAttribute('data-template');
                                     const template = document.getElementById(id);
@@ -72,7 +77,7 @@
                                 // }
                             });
 
-                            var tippyInstance = document.getElementById('axie--{{ id }}')._tippy;
+                            var tippyInstance = document.getElementById('axie--{{ axie.id }}')._tippy;
 
                             // tippyInstance.show();
                         })();

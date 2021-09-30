@@ -27,6 +27,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use ProxyManager\Exception\ExceptionInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -67,14 +69,19 @@ class RecentlySoldAxieService
      * @var AxieDataService
      */
     private $axieDataService;
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
 
-    public function __construct(RecentlySoldAxieRepository $recentlySoldAxieRepo, AxieRepository $axieRepo, EntityManagerInterface $em, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService)
+    public function __construct(RecentlySoldAxieRepository $recentlySoldAxieRepo, AxieRepository $axieRepo, EntityManagerInterface $em, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService, SerializerInterface $serializer)
     {
         $this->recentlySoldAxieRepo = $recentlySoldAxieRepo;
         $this->axieRepo = $axieRepo;
         $this->em = $em;
         $this->axieFactoryService = $axieFactoryService;
         $this->axieDataService = $axieDataService;
+        $this->serializer = $serializer;
     }
 
     public function getMinUsdPrice() {
@@ -86,6 +93,56 @@ class RecentlySoldAxieService
             return;
         }
         $this->io->{$type}($msg);
+    }
+
+    public function get($amount = 20, $page = 1) {
+
+        $qb = $this->recentlySoldAxieRepo->createQueryBuilder('r');
+        $qb
+            ->setMaxResults($amount)
+            ->orderBy('r.date', 'DESC')
+            ;
+        $result = $qb->getQuery()->getResult();
+
+        $serializer = $this->serializer;
+        $recentlySold = array_map(function($_rs) use($serializer) {
+            /**
+             * @var $_rs RecentlySoldAxie
+             */
+            return [
+                'date' => $serializer->normalize($_rs->getDate()),
+                'price_eth' => $_rs->getPriceEth(),
+                'price_usd' => $_rs->getPriceUsd(),
+                '$axieEntity' => $serializer->normalize($_rs->getAxie(), null, [
+                    AbstractNormalizer::ATTRIBUTES => [
+                        'id',
+                        'url',
+                        'imageUrl',
+                        'dominantClassPurity',
+                        'r1ClassPurity',
+                        'r2ClassPurity',
+                        'pureness',
+                        'class',
+                        'hp',
+                        'speed',
+                        'skill',
+                        'morale',
+                        'quality',
+                        'avgAttackPerCard',
+                        'avgDefencePerCard',
+                        'numberOfZeroEnergyCard',
+                        'sumOfCardEnergy',
+                    ]
+                ])
+            ];
+        }, $result);
+
+        $output = [
+            '$recentlySold' => $recentlySold
+        ];
+
+        return $output;
+
     }
 
     public function crawl(SymfonyStyle $io = null) {

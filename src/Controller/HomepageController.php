@@ -8,6 +8,7 @@ use App\Repository\AxieRepository;
 use App\Repository\MarketplaceCrawlRepository;
 use App\Service\CrawlMarketplaceWatchlistService;
 use App\Service\NotifyService;
+use App\Service\RecentlySoldAxieService;
 use App\Util\AxieGeneUtil;
 use BCMathExtended\BC;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,14 +40,19 @@ class HomepageController extends AbstractController
      * @var Serializer
      */
     private $serializer;
+    /**
+     * @var RecentlySoldAxieService
+     */
+    private $recentlySoldAxieService;
 
-    public function __construct(CrawlMarketplaceWatchlistService $crawlMarketplaceWatchlistService, MarketplaceCrawlRepository $marketplaceCrawlRepo, EntityManagerInterface $em, SerializerInterface $serializer) {
+    public function __construct(CrawlMarketplaceWatchlistService $crawlMarketplaceWatchlistService, MarketplaceCrawlRepository $marketplaceCrawlRepo, EntityManagerInterface $em, SerializerInterface $serializer, RecentlySoldAxieService $recentlySoldAxieService) {
 
         $this->crawlMarketplaceWatchlistService = $crawlMarketplaceWatchlistService;
         $this->marketplaceCrawlRepo = $marketplaceCrawlRepo;
         $this->em = $em;
 
         $this->serializer = $serializer;
+        $this->recentlySoldAxieService = $recentlySoldAxieService;
     }
 
     /**
@@ -54,10 +60,10 @@ class HomepageController extends AbstractController
      */
     public function index(): Response
     {
-//        $this->crawlMarketplaceWatchlistService->crawlAll();
 
         return $this->render('homepage/index.html.twig', [
             'controller_name' => 'HomepageController',
+            'recentlySold' => $this->recentlySoldAxieService->get()
         ]);
     }
 
