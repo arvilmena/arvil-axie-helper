@@ -64,7 +64,7 @@
                         <td>{{ result.getDate()|date('F j, Y g:ia', "Asia/Manila") }}</td>
                         <td>{{ result.getBreedCount() }}</td>
                         <td>{{ result.getPriceUsd()|format_currency('USD') }}</td>
-                        <td>{{ result.getPriceEth()|format_currency('ETH') }}</td>
+                        <td>{{ result.getPriceEth()|number_format(4) }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

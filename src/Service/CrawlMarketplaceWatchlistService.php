@@ -31,6 +31,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Uid\Ulid;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class CrawlMarketplaceWatchlistService.
@@ -71,6 +72,10 @@ class CrawlMarketplaceWatchlistService
      * @var WatchlistAxieNotifyValidationService
      */
     private $watchlistAxieNotifyValidationService;
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
 
     public function __construct(
         EntityManagerInterface $em,
@@ -78,7 +83,8 @@ class CrawlMarketplaceWatchlistService
         AxieRepository $axieRepo,
         AxieHistoryRepository $axieHistoryRepo,
         NotifyService $notifyService,
-        WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService
+        WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService,
+        HttpClientInterface $httpClient
     )
     {
         $this->em = $em;
@@ -87,6 +93,7 @@ class CrawlMarketplaceWatchlistService
         $this->axieHistoryRepo = $axieHistoryRepo;
         $this->notifyService = $notifyService;
         $this->watchlistAxieNotifyValidationService = $watchlistAxieNotifyValidationService;
+        $this->httpClient = $httpClient;
     }
 
     public function log($msg, $type = 'note') {
@@ -118,6 +125,7 @@ class CrawlMarketplaceWatchlistService
         try {
             $statusCode = $response->getStatusCode();
         } catch (TransportExceptionInterface $e) {
+            $this->log('error: cannot get the status code', 'error');
             $this->em->persist($crawl);
             $this->em->flush();
             return $output;
@@ -230,13 +238,13 @@ class CrawlMarketplaceWatchlistService
 
                 $axieHistory = $this->axieHistoryRepo->pickAxiesLast($axieEntity->getId());
                 $ethPrice = round((float) ($axie['auction']['currentPrice'] / $ethDivisor), 4);
-                $usdPrice = round($axieCurrentPriceUSD, 1);
+                $usdPrice = round($axieCurrentPriceUSD, 2);
                 if (
                     null === $axieHistory
                     || $axieHistory->getPriceEth() !== $ethPrice
                     || $axieHistory->getBreedCount() !== (int) $axie['breedCount']
                 ) {
-                    $axieHistory = new AxieHistory( new \DateTime('now') );
+                    $axieHistory = new AxieHistory( new \DateTime('now', new \DateTimeZone('UTC')) );
                     $axieHistory
                         ->setAxie($axieEntity)
                         ->setPriceEth( $ethPrice )
@@ -339,9 +347,6 @@ class CrawlMarketplaceWatchlistService
             $crawlSessionUlid = new Ulid();
         }
 
-
-        $client = HttpClient::create();
-
         $watchlists = $this->watchlistRepo->findBy(['shouldCrawlMorePage' => true], ['orderWeight' => 'DESC']);
 
         $output = [];
@@ -375,7 +380,7 @@ class CrawlMarketplaceWatchlistService
                         ]
                     ],
                 ];
-                $response = $client->request('POST', $fetchPayload['url'], $fetchPayload['payload']);
+                $response = $this->httpClient->request('POST', $fetchPayload['url'], $fetchPayload['payload']);
 
                 try {
                     $statusCode = $response->getStatusCode();
@@ -463,8 +468,6 @@ class CrawlMarketplaceWatchlistService
             $crawlSessionUlid = new Ulid();
         }
 
-        $client = HttpClient::create();
-
         $watchlists = $this->watchlistRepo->createQueryBuilder('w')
             ->where('w.shouldCrawlMorePage != true')
             ->orWhere('w.shouldCrawlMorePage IS NULL')
@@ -489,14 +492,18 @@ class CrawlMarketplaceWatchlistService
                     'user_data' => [
                         'watchlistId' => $watchlist->getId(),
                         'request' => json_encode($payload)
-                    ]
+                    ],
+                    'headers' => [
+                        'Content-Type' => 'text/plain',
+                        'User-Agent' => 'PostmanRuntime/7.28.4',
+                    ],
                 ],
             ];
         }
 
         $responses = [];
         foreach($urlsAndPayloads as $urlsAndPayload) {
-            $responses[] = $client->request('POST', $urlsAndPayload['url'], $urlsAndPayload['payload']);
+            $responses[] = $this->httpClient->request('POST', $urlsAndPayload['url'], $urlsAndPayload['payload']);
         }
 
         $output = [];

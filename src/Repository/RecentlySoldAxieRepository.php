@@ -20,7 +20,7 @@ class RecentlySoldAxieRepository extends ServiceEntityRepository
         parent::__construct($registry, RecentlySoldAxie::class);
     }
 
-    public function hasBeenSoldBetween(Axie $axie, float $priceEth, \DateTimeInterface $date1, $date2 = 'now') {
+    public function hasBeenSoldBetween(Axie $axie, $priceEth, \DateTimeInterface $date1, $date2 = 'now', $breedCount = null) {
 
         if ('now' === $date2) {
             $date2 = new \DateTime('now', new \DateTimeZone('UTC'));
@@ -33,16 +33,23 @@ class RecentlySoldAxieRepository extends ServiceEntityRepository
             $oldest = $date1;
         }
 
-        $qb = $this->createQueryBuilder('r');
+        $qb = $this->createQueryBuilder('r')
+                ->andWhere('r.axie = :axie')
+                ->setParameter('axie', $axie)
+                ->andWhere('r.date BETWEEN :earliest and :oldest')
+                ->setParameter('earliest', $earliest)
+                ->setParameter('oldest', $oldest)
+                ->andWhere('r.priceEth = :priceEth')
+                ->setParameter('priceEth', $priceEth)
+                ->setMaxResults(1)
+            ;
+
+        if (null !== $breedCount) {
+            $qb->andWhere('r.breedCount = :breedCount')
+                ->setParameter('breedCount', $breedCount);
+        }
+
         $result = $qb
-                    ->andWhere('r.axie = :axie')
-                    ->setParameter('axie', $axie)
-                    ->andWhere('r.date BETWEEN :earliest and :oldest')
-                    ->setParameter('earliest', $earliest->format('Y-m-d H:i:s'))
-                    ->setParameter('oldest', $oldest->format('Y-m-d H:i:s'))
-                    ->andWhere('r.priceEth = :priceEth')
-                    ->setParameter('priceEth', $priceEth)
-                    ->setMaxResults(1)
                     ->getQuery()
                     ->getOneOrNullResult();
 

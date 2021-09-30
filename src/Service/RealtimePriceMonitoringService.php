@@ -23,6 +23,7 @@ use App\Repository\AxieRepository;
 use App\Repository\MarketplaceWatchlistRepository;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class RealtimePriceMonitoringService.
@@ -54,14 +55,19 @@ class RealtimePriceMonitoringService
      * @var AxieDataService
      */
     private $axieDataService;
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
 
-    public function __construct(MarketplaceWatchlistRepository $watchlistRepo, WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService, AxieRepository $axieRepo, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService) {
+    public function __construct(MarketplaceWatchlistRepository $watchlistRepo, WatchlistAxieNotifyValidationService $watchlistAxieNotifyValidationService, AxieRepository $axieRepo, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService, HttpClientInterface $httpClient) {
 
         $this->watchlistRepo = $watchlistRepo;
         $this->watchlistAxieNotifyValidationService = $watchlistAxieNotifyValidationService;
         $this->axieRepo = $axieRepo;
         $this->axieFactoryService = $axieFactoryService;
         $this->axieDataService = $axieDataService;
+        $this->httpClient = $httpClient;
     }
 
     public function generateToastNotification($data) {
@@ -194,8 +200,6 @@ HTML;
 
     public function getAllPriceHit() {
 
-        $client = HttpClient::create();
-
         $watchlists = $this->watchlistRepo->findBy(['useRealtimePriceMonitoring' => true]);
 
         $responses = [];
@@ -222,7 +226,7 @@ HTML;
             ];
 
             foreach($urlsAndPayloads as $urlsAndPayload) {
-                $responses[] = $client->request('POST', $urlsAndPayload['url'], $urlsAndPayload['payload']);
+                $responses[] = $this->httpClient->request('POST', $urlsAndPayload['url'], $urlsAndPayload['payload']);
             }
 
             foreach($responses as $response) {

@@ -24,12 +24,12 @@ class AxieHistory
     private $axie;
 
     /**
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(type="decimal", precision=10, scale=4)
      */
     private $priceEth;
 
     /**
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(type="decimal", precision=10, scale=2)
      */
     private $priceUsd;
 
@@ -43,7 +43,10 @@ class AxieHistory
      */
     private $date;
 
-    public function __construct(\DateTimeInterface $dateTime) {
+    public function __construct(\DateTimeInterface $dateTime = null) {
+        if (null === $dateTime) {
+            $dateTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        }
         $this->date = $dateTime;
     }
 

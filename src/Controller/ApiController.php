@@ -25,10 +25,6 @@ class ApiController extends AbstractController
      */
     public function recentlySold(RecentlySoldAxieService $recentlySoldAxieService ): Response
     {
-        $recentlySoldAxieService->crawl();
-        
-        return $this->render('api/index.html.twig', [
-            'controller_name' => 'ApiController',
-        ]);
+        return $this->json($recentlySoldAxieService->crawl());
     }
 }

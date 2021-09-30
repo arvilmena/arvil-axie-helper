@@ -17,6 +17,13 @@ framework:
     php_errors:
         log: true
 
+    http_client:
+        default_options:
+            verify_peer: false
+            verify_host: false
+            headers:
+                'User-Agent': 'PostmanRuntime/7.28.4'
+
 when@test:
     framework:
         test: true

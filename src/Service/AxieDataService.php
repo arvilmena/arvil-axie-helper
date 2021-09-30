@@ -33,6 +33,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class AxieDataService.
@@ -71,6 +72,10 @@ class AxieDataService
      * @var AxieHistoryRepository
      */
     private $axieHistoryRepo;
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
 
     public function __construct(
         AxieRepository $axieRepo,
@@ -78,7 +83,8 @@ class AxieDataService
         AxieCardAbilityRepository $axieCardAbilityRepo,
         AxieCalculateStatService $axieCalculateStatService,
         EntityManagerInterface $em,
-        AxieHistoryRepository $axieHistoryRepo
+        AxieHistoryRepository $axieHistoryRepo,
+        HttpClientInterface $httpClient
     )
     {
         $this->axiePartRepo = $axiePartRepo;
@@ -87,6 +93,7 @@ class AxieDataService
         $this->em = $em;
         $this->axieCalculateStatService = $axieCalculateStatService;
         $this->axieHistoryRepo = $axieHistoryRepo;
+        $this->httpClient = $httpClient;
     }
 
     public function log($msg, $type = 'note') {
@@ -116,8 +123,6 @@ class AxieDataService
             return;
         }
 
-        $client = HttpClient::create();
-
         $_toProcess = array_chunk($toProcess, 5);
 
         foreach($_toProcess as $_tp) {
@@ -140,7 +145,7 @@ class AxieDataService
 
                 $body = '{"operationName":"GetAxieDetail","variables":{"axieId":"' . $id . '"},"query":"query GetAxieDetail($axieId: ID!) {\n  axie(axieId: $axieId) {\n    ...AxieDetail\n    __typename\n  }\n}\n\nfragment AxieDetail on Axie {\n  id\n  image\n  class\n  chain\n  name\n  genes\n  owner\n  birthDate\n  bodyShape\n  class\n  sireId\n  sireClass\n  matronId\n  matronClass\n  stage\n  title\n  breedCount\n  level\n  figure {\n    atlas\n    model\n    image\n    __typename\n  }\n  parts {\n    ...AxiePart\n    __typename\n  }\n  stats {\n    ...AxieStats\n    __typename\n  }\n  auction {\n    ...AxieAuction\n    __typename\n  }\n  ownerProfile {\n    name\n    __typename\n  }\n  battleInfo {\n    ...AxieBattleInfo\n    __typename\n  }\n  children {\n    id\n    name\n    class\n    image\n    title\n    stage\n    __typename\n  }\n  __typename\n}\n\nfragment AxieBattleInfo on AxieBattleInfo {\n  banned\n  banUntil\n  level\n  __typename\n}\n\nfragment AxiePart on AxiePart {\n  id\n  name\n  class\n  type\n  specialGenes\n  stage\n  abilities {\n    ...AxieCardAbility\n    __typename\n  }\n  __typename\n}\n\nfragment AxieCardAbility on AxieCardAbility {\n  id\n  name\n  attack\n  defense\n  energy\n  description\n  backgroundUrl\n  effectIconUrl\n  __typename\n}\n\nfragment AxieStats on AxieStats {\n  hp\n  speed\n  skill\n  morale\n  __typename\n}\n\nfragment AxieAuction on Auction {\n  startingPrice\n  endingPrice\n  startingTimestamp\n  endingTimestamp\n  duration\n  timeLeft\n  currentPrice\n  currentPriceUSD\n  suggestedPrice\n  seller\n  listingIndex\n  state\n  __typename\n}\n"}';
 
-                $responses[] = $client->request('POST', 'https://axieinfinity.com/graphql-server-v2/graphql', [
+                $responses[] = $this->httpClient->request('POST', 'https://axieinfinity.com/graphql-server-v2/graphql', [
                     'headers' => [
                         'Accept' => 'application/json',
                         'Content-Type' => 'application/json'
@@ -152,7 +157,7 @@ class AxieDataService
                 ]);
             } # foreach($_tp as $axieEntity) {
 
-            foreach ($client->stream($responses, 10) as $response => $chunk) {
+            foreach ($this->httpClient->stream($responses, 10) as $response => $chunk) {
                 try {
                     if ($chunk->isTimeout()) {
                         // $response staled for more than 1.5 seconds
@@ -358,7 +363,7 @@ class AxieDataService
                     $this->log('> error: ' . $e->getMessage(), 'error');
                     continue;
                 }
-            } # foreach ($client->stream($responses, 10) as $response => $chunk) {
+            } # foreach ($this->httpClient->stream($responses, 10) as $response => $chunk) {
 
             if ($toProcessCount > 1) {
                 $this->log('sleeping for 3 secs');

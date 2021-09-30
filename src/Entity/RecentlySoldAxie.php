@@ -30,14 +30,19 @@ class RecentlySoldAxie
     private $axie;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="decimal", precision=10, scale=4)
      */
     private $priceEth;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="decimal", precision=10, scale=2)
      */
     private $priceUsd;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $breedCount;
 
     /**
      * @ORM\PrePersist()
@@ -98,6 +103,18 @@ class RecentlySoldAxie
     public function setPriceUsd(float $priceUsd): self
     {
         $this->priceUsd = $priceUsd;
+
+        return $this;
+    }
+
+    public function getBreedCount(): ?int
+    {
+        return $this->breedCount;
+    }
+
+    public function setBreedCount(?int $breedCount): self
+    {
+        $this->breedCount = $breedCount;
 
         return $this;
     }

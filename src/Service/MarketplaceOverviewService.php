@@ -24,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class MarketplaceOverviewService.
@@ -44,10 +45,15 @@ class MarketplaceOverviewService
      * @var SymfonyStyle|null
      */
     private $io;
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
 
-    public function __construct(EntityManagerInterface $em) {
+    public function __construct(EntityManagerInterface $em, HttpClientInterface $httpClient) {
 
         $this->em = $em;
+        $this->httpClient = $httpClient;
     }
 
     private function log($msg, $type = 'note') : void {
@@ -61,10 +67,7 @@ class MarketplaceOverviewService
         $this->io = $io;
         $jsonPayload =  '{"operationName":"GetOverviewToday","variables":{},"query":"query GetOverviewToday {\n  marketStats {\n    last24Hours {\n      ...OverviewFragment\n      __typename\n    }\n    last7Days {\n      ...OverviewFragment\n      __typename\n    }\n    last30Days {\n      ...OverviewFragment\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment OverviewFragment on SettlementStats {\n  count\n  axieCount\n  volume\n  volumeUsd\n  __typename\n}\n"}';
 
-
-        $client = HttpClient::create();
-
-        $response = $client->request('POST', 'https://graphql-gateway.axieinfinity.com/graphql', ['json' => json_decode($jsonPayload)]);
+        $response = $this->httpClient->request('POST', 'https://graphql-gateway.axieinfinity.com/graphql', ['json' => json_decode($jsonPayload)]);
 
         try {
             $statusCode = $response->getStatusCode();

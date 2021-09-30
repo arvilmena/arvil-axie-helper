@@ -13,6 +13,8 @@
 
                     {% for data in recentlySold['$recentlySold'] %}
                         {% set axie = data['$axieEntity'] %}
+{#                        {{ dump(data) }}#}
+{#                        {{ dump(data['$axieEntity']) }}#}
                         <div class="axie">
                             <div class="axie--column axie--column__axie-image-and-text">
                                 <div class="axie--image">
@@ -24,14 +26,14 @@
                                         <span class="axie--id">#{{ axie.id|number_format }}</span>
                                     </div>
                                     <div class="axie--text-row">
-                                        <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> 2, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality }}%
+                                        <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> 2, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality|number_format(2) }}%
                                     </div>
                                     <div class="axie--text-row">
                                         <span class="fs-5">Ξ {{ data.price_eth|number_format(4) }} <small class="fs-6">${{ data.price_usd|number_format(2) }}</small></span>
                                     </div>
                                     <div class="axie--text-row axie--text-row__wrap">
                                         <div>
-                                            <a href="{{ axie.url }}">View in marketplace</a>
+                                            <a target="_blank" href="{{ axie.url }}">View in marketplace</a>
                                         </div>
                                         <div>
                                             <a href="{{ path('axie_id', {id: axie.id }) }}">View recorded data</a>

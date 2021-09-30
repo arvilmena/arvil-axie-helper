@@ -26,6 +26,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use http\Client\Response;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
@@ -46,16 +47,19 @@ class ScholarTrackerService
      * @var EntityManagerInterface
      */
     private $em;
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
 
-    public function __construct(ScholarRepository $scholarRepo, EntityManagerInterface $em) {
+    public function __construct(ScholarRepository $scholarRepo, EntityManagerInterface $em, HttpClientInterface $httpClient) {
 
         $this->scholarRepo = $scholarRepo;
         $this->em = $em;
+        $this->httpClient = $httpClient;
     }
 
     public function saveAllScholarDataNow() {
-
-        $client = HttpClient::create();
 
         $scholars = $this->scholarRepo->findAll();
         $responses = [];
@@ -63,7 +67,7 @@ class ScholarTrackerService
         foreach ($scholars as $scholar ) {
             $uri = "https://api.lunaciarover.com/stats/0x" . trim($scholar->getRoninAddress(), 'ronin:');
 
-            $responses[] = $client->request('GET', $uri, [
+            $responses[] = $this->httpClient->request('GET', $uri, [
                 'user_data' => [
                     'scholar_id' => $scholar->getId()
                 ],
@@ -73,7 +77,7 @@ class ScholarTrackerService
         /**
          * @var $response ResponseInterface
          */
-        foreach ($client->stream($responses) as $response => $chunk) {
+        foreach ($this->httpClient->stream($responses) as $response => $chunk) {
             try {
                 if ($chunk->isTimeout()) {
                     // ... decide what to do when a timeout occurs

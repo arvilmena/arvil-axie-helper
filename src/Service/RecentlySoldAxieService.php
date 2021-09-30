@@ -20,7 +20,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Axie;
+use App\Entity\AxieHistory;
 use App\Entity\RecentlySoldAxie;
+use App\Repository\AxieHistoryRepository;
 use App\Repository\AxieRepository;
 use App\Repository\RecentlySoldAxieRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,6 +36,7 @@ use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class RecentlySoldAxieService.
@@ -73,8 +76,16 @@ class RecentlySoldAxieService
      * @var SerializerInterface
      */
     private $serializer;
+    /**
+     * @var AxieHistoryRepository
+     */
+    private $axieHistoryRepo;
+    /**
+     * @var HttpClientInterface
+     */
+    private $httpClient;
 
-    public function __construct(RecentlySoldAxieRepository $recentlySoldAxieRepo, AxieRepository $axieRepo, EntityManagerInterface $em, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService, SerializerInterface $serializer)
+    public function __construct(RecentlySoldAxieRepository $recentlySoldAxieRepo, AxieRepository $axieRepo, EntityManagerInterface $em, AxieFactoryService $axieFactoryService, AxieDataService $axieDataService, SerializerInterface $serializer, AxieHistoryRepository $axieHistoryRepo, HttpClientInterface $httpClient)
     {
         $this->recentlySoldAxieRepo = $recentlySoldAxieRepo;
         $this->axieRepo = $axieRepo;
@@ -82,6 +93,8 @@ class RecentlySoldAxieService
         $this->axieFactoryService = $axieFactoryService;
         $this->axieDataService = $axieDataService;
         $this->serializer = $serializer;
+        $this->axieHistoryRepo = $axieHistoryRepo;
+        $this->httpClient = $httpClient;
     }
 
     public function getMinUsdPrice() {
@@ -150,8 +163,6 @@ class RecentlySoldAxieService
         $output = [];
         $newAxies = [];
         $qualifiedRecentlySold = 0;
-
-        $client = HttpClient::create();
         $jsonPayload = '{"operationName":"GetRecentlyAxiesSold","variables":{"from":0,"size":100,"sort":"Latest","auctionType":"Sale"},"query":"query GetRecentlyAxiesSold($from: Int, $size: Int) {\n  settledAuctions {\n    axies(from: $from, size: $size) {\n      total\n      results {\n        ...AxieSettledBrief\n        transferHistory {\n          ...TransferHistoryInSettledAuction\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment AxieSettledBrief on Axie {\n  id\n  name\n  image\n  class\n  breedCount\n  __typename\n}\n\nfragment TransferHistoryInSettledAuction on TransferRecords {\n  total\n  results {\n    ...TransferRecordInSettledAuction\n    __typename\n  }\n  __typename\n}\n\nfragment TransferRecordInSettledAuction on TransferRecord {\n  from\n  to\n  txHash\n  timestamp\n  withPrice\n  withPriceUsd\n  fromProfile {\n    name\n    __typename\n  }\n  toProfile {\n    name\n    __typename\n  }\n  __typename\n}\n"}';
 
         $fetchPayload = [
@@ -160,7 +171,7 @@ class RecentlySoldAxieService
                 'json' => json_decode($jsonPayload)
             ],
         ];
-        $response = $client->request('POST', $fetchPayload['url'], $fetchPayload['payload']);
+        $response = $this->httpClient->request('POST', $fetchPayload['url'], $fetchPayload['payload']);
 
         try {
             $statusCode = $response->getStatusCode();
@@ -203,37 +214,58 @@ class RecentlySoldAxieService
 
             if ( true === $createOrGet['$isAdded'] ) {
                 $newAxies[] = $axieResult['id'];
+                $this->log('axie: ' . $axieResult['id'] . ' is a new Axie in our DB');
+            } else {
+                $this->log('axie: ' . $axieResult['id'] . ' already exists in our DB');
             }
 
             $axieEntity = $createOrGet['$axieEntity'];
 
             // check if this axie has been sold at the same price already for the last hour
             $ethDivisor = 1000000000000000000;
-            $ethPrice = (float) $axieResult['transferHistory']['results'][0]['withPrice'] / $ethDivisor;
-            $now = new \DateTime('now', new \DateTimeZone('UTC'));
-            $ago = $now->modify('-1 hour');
+            /*
+                $ethPrice = round((float) ($axie['auction']['currentPrice'] / $ethDivisor), 4);
+                $usdPrice = round($axieCurrentPriceUSD, 1);
+             */
+            $ethPrice = round((float) $axieResult['transferHistory']['results'][0]['withPrice'] / $ethDivisor, 4);
+            $usdPrice = round($axieResult['transferHistory']['results'][0]['withPriceUsd'], 2);
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+            $breedCount = (int) $axieResult['breedCount'];
 
             if ( !empty($axieResult['transferHistory']['results'][0]['timestamp']) ) {
-                $dateSold = \DateTime::createFromFormat('U', (string) $axieResult['transferHistory']['results'][0]['timestamp']);
+                $dateSold = \DateTimeImmutable::createFromFormat('U', (string) $axieResult['transferHistory']['results'][0]['timestamp']);
             } else {
                 $dateSold = $now;
             }
+            $ago = $dateSold->modify('-1 hour');
 
             $hasBeenSoldRecently = $this->recentlySoldAxieRepo->hasBeenSoldBetween($axieEntity, $ethPrice, $dateSold, $ago );
 
             if (true === $hasBeenSoldRecently) {
-                $this->log('axie: ' . $axieResult['id'] . ' has been sold already recently at the same price ' . $ethPrice);
+                $this->log('axie: ' . $axieResult['id'] . ' has been sold already recently at the same price: ' . $ethPrice . ' between ' . $dateSold->format('Y-m-d H:i:s') . ' and ' . $ago->format('Y-m-d H:i:s') );
                 continue;
+            } else {
+                $this->log('axie: ' . $axieResult['id'] . ' has not been sold recently at the same price: ' . $ethPrice . ' between ' . $dateSold->format('Y-m-d H:i:s') . ' and ' . $ago->format('Y-m-d H:i:s') );
             }
             $qualifiedRecentlySold++;
             $recentlySold = new RecentlySoldAxie();
             $recentlySold
                 ->setDate($dateSold)
                 ->setAxie($axieEntity)
-                ->setPriceUsd((float) $axieResult['transferHistory']['results'][0]['withPriceUsd'])
+                ->setPriceUsd($usdPrice)
                 ->setPriceEth($ethPrice)
+                ->setBreedCount($breedCount)
             ;
 
+            $axieHistory = new AxieHistory($dateSold);
+            $axieHistory
+                ->setAxie($axieEntity)
+                ->setPriceEth($ethPrice)
+                ->setPriceUsd($usdPrice)
+                ->setBreedCount($breedCount)
+            ;
+            $this->em->persist($axieHistory);
+            $this->em->persist($axieEntity);
             $this->em->persist($recentlySold);
             $this->em->flush();
 
@@ -244,6 +276,9 @@ class RecentlySoldAxieService
         }
 
         $this->log('there are ' . $qualifiedRecentlySold . ' qualified recently sold and ' . count($newAxies) . ' of them are new axies added to the DB');
+
+        $output['$qualifiedRecentlySold'] = $qualifiedRecentlySold;
+        $output['$newAxies'] = $newAxies;
 
         return $output;
     }
