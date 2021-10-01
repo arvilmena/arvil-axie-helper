@@ -45,6 +45,26 @@ class RecentlySoldAxie
     private $breedCount;
 
     /**
+     * @ORM\ManyToOne(targetEntity=AxieCardAbility::class)
+     */
+    private $backCard;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=AxieCardAbility::class)
+     */
+    private $mouthCard;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=AxieCardAbility::class)
+     */
+    private $hornCard;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=AxieCardAbility::class)
+     */
+    private $tailCard;
+
+    /**
      * @ORM\PrePersist()
      * @throws \Exception
      */
@@ -115,6 +135,54 @@ class RecentlySoldAxie
     public function setBreedCount(?int $breedCount): self
     {
         $this->breedCount = $breedCount;
+
+        return $this;
+    }
+
+    public function getBackCard(): ?AxieCardAbility
+    {
+        return $this->backCard;
+    }
+
+    public function setBackCard(?AxieCardAbility $backCard): self
+    {
+        $this->backCard = $backCard;
+
+        return $this;
+    }
+
+    public function getMouthCard(): ?AxieCardAbility
+    {
+        return $this->mouthCard;
+    }
+
+    public function setMouthCard(?AxieCardAbility $mouthCard): self
+    {
+        $this->mouthCard = $mouthCard;
+
+        return $this;
+    }
+
+    public function getHornCard(): ?AxieCardAbility
+    {
+        return $this->hornCard;
+    }
+
+    public function setHornCard(?AxieCardAbility $hornCard): self
+    {
+        $this->hornCard = $hornCard;
+
+        return $this;
+    }
+
+    public function getTailCard(): ?AxieCardAbility
+    {
+        return $this->tailCard;
+    }
+
+    public function setTailCard(?AxieCardAbility $tailCard): self
+    {
+        $this->tailCard = $tailCard;
 
         return $this;
     }

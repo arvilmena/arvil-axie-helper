@@ -109,6 +109,92 @@ class RecentlySoldAxieService
         }
         $this->io->{$type}($msg);
     }
+    
+    public function serialize(RecentlySoldAxie $_rs) {
+        /**
+         * @var $_rs RecentlySoldAxie
+         */
+        $o = [
+            'id' => $_rs->getId(),
+            'date' => $this->serializer->normalize($_rs->getDate()),
+            'price_eth' => $_rs->getPriceEth(),
+            'price_usd' => $_rs->getPriceUsd(),
+            'breed_count' => $_rs->getBreedCount(),
+            '$axieEntity' => $this->serializer->normalize($_rs->getAxie(), null, [
+                AbstractNormalizer::ATTRIBUTES => [
+                    'id',
+                    'url',
+                    'imageUrl',
+                    'dominantClassPurity',
+                    'r1ClassPurity',
+                    'r2ClassPurity',
+                    'pureness',
+                    'class',
+                    'hp',
+                    'speed',
+                    'skill',
+                    'morale',
+                    'quality',
+                    'avgAttackPerCard',
+                    'avgDefencePerCard',
+                    'numberOfZeroEnergyCard',
+                    'sumOfCardEnergy',
+                ]
+            ]),
+        ];
+        /**
+         * @var $parts AxiePart[]
+         */
+        $parts = $_rs->getAxie()->getParts();
+        foreach($parts as $part) {
+            $o['$axieParts'][$part->getType()] = [];
+            $o['$axieParts'][$part->getType()]['$part'] = $this->serializer->normalize($part, null, [
+                AbstractNormalizer::ATTRIBUTES => [
+                    'id',
+                    'name',
+                    'type',
+                    'class'
+                ]
+            ]);
+            if (null !== $part->getCardAbility()) {
+                $o['$axieParts'][$part->getType()]['$cardAbility'] = $this->serializer->normalize($part->getCardAbility(), null, [
+                    AbstractNormalizer::ATTRIBUTES => [
+                        'id',
+                        'name',
+                        'attack',
+                        'defence',
+                        'energy',
+                        'description',
+                        'backgroundUrl',
+                    ]
+                ]);
+            } else {
+                $o['$axieParts'][$part->getType()]['$cardAbility'] = null;
+            }
+        }
+
+        /**
+         * @var $genes AxieGenes[]
+         */
+        $genes = $_rs->getAxie()->getGenes();
+        $o['$axieGenes'] = [
+            'd' => [],
+            'r1' => [],
+            'r2' => []
+        ];
+        foreach ($genes as $gene) {
+            $o['$axieGenes'][$gene->getGeneType()][$gene->getPart()->getType()] = $this->serializer->normalize($gene->getPart(), null, [
+                AbstractNormalizer::ATTRIBUTES => [
+                    'id',
+                    'name',
+                    'type',
+                    'class'
+                ]
+            ]);
+        }
+
+        return $o;
+    }
 
     public function get($amount = 20, $page = 1) {
 
@@ -121,91 +207,7 @@ class RecentlySoldAxieService
             ;
         $result = $qb->getQuery()->getResult();
 
-        $serializer = $this->serializer;
-        $recentlySold = array_map(function($_rs) use($serializer) {
-            /**
-             * @var $_rs RecentlySoldAxie
-             */
-            $o = [
-                'date' => $serializer->normalize($_rs->getDate()),
-                'price_eth' => $_rs->getPriceEth(),
-                'price_usd' => $_rs->getPriceUsd(),
-                'breed_count' => $_rs->getBreedCount(),
-                '$axieEntity' => $serializer->normalize($_rs->getAxie(), null, [
-                    AbstractNormalizer::ATTRIBUTES => [
-                        'id',
-                        'url',
-                        'imageUrl',
-                        'dominantClassPurity',
-                        'r1ClassPurity',
-                        'r2ClassPurity',
-                        'pureness',
-                        'class',
-                        'hp',
-                        'speed',
-                        'skill',
-                        'morale',
-                        'quality',
-                        'avgAttackPerCard',
-                        'avgDefencePerCard',
-                        'numberOfZeroEnergyCard',
-                        'sumOfCardEnergy',
-                    ]
-                ]),
-            ];
-            /**
-             * @var $parts AxiePart[]
-             */
-            $parts = $_rs->getAxie()->getParts();
-            foreach($parts as $part) {
-                $o['$axieParts'][$part->getType()] = [];
-                $o['$axieParts'][$part->getType()]['$part'] = $serializer->normalize($part, null, [
-                    AbstractNormalizer::ATTRIBUTES => [
-                        'id',
-                        'name',
-                        'type',
-                        'class'
-                    ]
-                ]);
-                if (null !== $part->getCardAbility()) {
-                    $o['$axieParts'][$part->getType()]['$cardAbility'] = $serializer->normalize($part->getCardAbility(), null, [
-                        AbstractNormalizer::ATTRIBUTES => [
-                            'id',
-                            'name',
-                            'attack',
-                            'defence',
-                            'energy',
-                            'description',
-                            'backgroundUrl',
-                        ]
-                    ]);
-                } else {
-                    $o['$axieParts'][$part->getType()]['$cardAbility'] = null;
-                }
-            }
-
-            /**
-             * @var $genes AxieGenes[]
-             */
-            $genes = $_rs->getAxie()->getGenes();
-            $o['$axieGenes'] = [
-                'd' => [],
-                'r1' => [],
-                'r2' => []
-            ];
-            foreach ($genes as $gene) {
-                $o['$axieGenes'][$gene->getGeneType()][$gene->getPart()->getType()] = $serializer->normalize($gene->getPart(), null, [
-                    AbstractNormalizer::ATTRIBUTES => [
-                        'id',
-                        'name',
-                        'type',
-                        'class'
-                    ]
-                ]);
-            }
-
-            return $o;
-        }, $result);
+        $recentlySold = array_map([$this, 'serialize'], $result);
 
         $output = [
             '$recentlySold' => $recentlySold
@@ -219,7 +221,8 @@ class RecentlySoldAxieService
         $this->io = $io;
         $output = [];
         $newAxies = [];
-        $qualifiedRecentlySold = 0;
+        $qualifiedRecentlySold = [];
+        $qualifiedRecentlySoldCount = 0;
         $jsonPayload = '{"operationName":"GetRecentlyAxiesSold","variables":{"from":0,"size":100,"sort":"Latest","auctionType":"Sale"},"query":"query GetRecentlyAxiesSold($from: Int, $size: Int) {\n  settledAuctions {\n    axies(from: $from, size: $size) {\n      total\n      results {\n        ...AxieSettledBrief\n        transferHistory {\n          ...TransferHistoryInSettledAuction\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment AxieSettledBrief on Axie {\n  id\n  name\n  image\n  class\n  breedCount\n  __typename\n}\n\nfragment TransferHistoryInSettledAuction on TransferRecords {\n  total\n  results {\n    ...TransferRecordInSettledAuction\n    __typename\n  }\n  __typename\n}\n\nfragment TransferRecordInSettledAuction on TransferRecord {\n  from\n  to\n  txHash\n  timestamp\n  withPrice\n  withPriceUsd\n  fromProfile {\n    name\n    __typename\n  }\n  toProfile {\n    name\n    __typename\n  }\n  __typename\n}\n"}';
 
         $fetchPayload = [
@@ -304,7 +307,8 @@ class RecentlySoldAxieService
             } else {
                 $this->log('axie: ' . $axieResult['id'] . ' has not been sold recently at the same price: ' . $ethPrice . ' between ' . $dateSold->format('Y-m-d H:i:s') . ' and ' . $ago->format('Y-m-d H:i:s') );
             }
-            $qualifiedRecentlySold++;
+            $qualifiedRecentlySoldCount++;
+
             $recentlySold = new RecentlySoldAxie();
             $recentlySold
                 ->setDate($dateSold)
@@ -326,14 +330,55 @@ class RecentlySoldAxieService
             $this->em->persist($recentlySold);
             $this->em->flush();
 
+            $qualifiedRecentlySold[] = $recentlySold;
+
         }
 
         if (!empty($newAxies)) {
             $this->axieDataService->processAllUnprocessed($this->io, $newAxies);
         }
 
-        $this->log('there are ' . $qualifiedRecentlySold . ' qualified recently sold and ' . count($newAxies) . ' of them are new axies added to the DB');
+        $this->log('there are ' . $qualifiedRecentlySoldCount . ' qualified recently sold and ' . count($newAxies) . ' of them are new axies added to the DB');
 
+        /**
+         * @var $recentlySold RecentlySoldAxie
+         */
+        foreach ($qualifiedRecentlySold as $recentlySold) {
+            $parts = $recentlySold->getAxie()->getParts();
+            if (empty($parts)) {
+                $this->log('error: cannot get the parts of axie: ' . $recentlySold->getAxie()->getId(), 'error');
+                continue;
+            }
+            foreach($parts as $part) {
+                switch(strtolower($part->getType())):
+                    case 'back':
+                        if ( null !== $part->getCardAbility()) {
+                            $recentlySold->setBackCard($part->getCardAbility());
+                        }
+                        break;
+                    case 'mouth':
+                        if ( null !== $part->getCardAbility()) {
+                            $recentlySold->setMouthCard($part->getCardAbility());
+                        }
+                        break;
+                    case 'horn':
+                        if ( null !== $part->getCardAbility()) {
+                            $recentlySold->setHornCard($part->getCardAbility());
+                        }
+                        break;
+                    case 'tail':
+                        if ( null !== $part->getCardAbility()) {
+                            $recentlySold->setTailCard($part->getCardAbility());
+                        }
+                        break;
+                endswitch;
+            }
+
+            $this->em->persist($recentlySold);
+            $this->em->flush();
+        }
+
+        $output['$qualifiedRecentlySoldCount'] = $qualifiedRecentlySoldCount;
         $output['$qualifiedRecentlySold'] = $qualifiedRecentlySold;
         $output['$newAxies'] = $newAxies;
 

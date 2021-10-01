@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomepageController!{% endblock %}
+{% block title %}Hello RecentlySoldAxieController!{% endblock %}
 
 {% block body %}
 
@@ -10,15 +10,11 @@
             <div class="col col-12">
 
                 <section class="Recently-Sold-Axies">
-
-                    {% for data in recentlySold['$recentlySold'] %}
-                        {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data} only %}
-                    {% endfor %}
+                    {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data['$recentlySold']} only %}
                 </section>
 
             </div>
         </div>
 
     </div>
-
 {% endblock %}
