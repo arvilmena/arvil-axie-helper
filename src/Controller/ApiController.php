@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\RealtimePriceMonitoringService;
 use App\Service\RecentlySoldAxieService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,5 +27,14 @@ class ApiController extends AbstractController
     public function recentlySold(RecentlySoldAxieService $recentlySoldAxieService ): Response
     {
         return $this->json($recentlySoldAxieService->crawl());
+    }
+
+
+    /**
+     * @Route("/api/realtime/all", name="api_realtime_all")
+     */
+    public function allRealtimeApi(RealtimePriceMonitoringService $realtimePriceMonitoringService) : Response
+    {
+        return $this->json($realtimePriceMonitoringService->getAllPriceHit());
     }
 }

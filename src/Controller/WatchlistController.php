@@ -62,14 +62,6 @@ class WatchlistController extends AbstractController
     }
 
     /**
-     * @Route("/api/realtime/all", name="api_realtime_all")
-     */
-    public function allRealtimeApi() : Response
-    {
-        return $this->json($this->realtimePriceMonitoringService->getAllPriceHit());
-    }
-
-    /**
      * @Route("/api/watchlist/overview/{id}", name="api_watchlist_overview_id")
      */
     public function watchlistOverviewApi($id) : Response
