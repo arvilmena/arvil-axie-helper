@@ -30,6 +30,9 @@
                                         <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> {{ data['breed_count'] }}, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality|number_format(2) }}%
                                     </div>
                                     <div class="axie--text-row">
+                                        <time class="timeago" datetime="{{ data['date']|date('rfc3339') }}">{{ data['date']|date('F j, Y g:ia', "Asia/Manila") }}</time>
+                                    </div>
+                                    <div class="axie--text-row">
                                         <span class="fs-5">Ξ {{ data.price_eth|number_format(4) }} <small class="fs-6">${{ data.price_usd|number_format(2) }}</small></span>
                                     </div>
                                     <div class="axie--text-row axie--text-row__wrap">

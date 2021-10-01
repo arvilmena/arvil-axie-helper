@@ -114,6 +114,8 @@ class RecentlySoldAxieService
 
         $qb = $this->recentlySoldAxieRepo->createQueryBuilder('r');
         $qb
+            ->andWhere('r.priceUsd > :minPrice')
+            ->setParameter('minPrice', 800)
             ->setMaxResults($amount)
             ->orderBy('r.date', 'DESC')
             ;
