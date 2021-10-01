@@ -20,7 +20,9 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Axie;
+use App\Entity\AxieGenes;
 use App\Entity\AxieHistory;
+use App\Entity\AxiePart;
 use App\Entity\RecentlySoldAxie;
 use App\Repository\AxieHistoryRepository;
 use App\Repository\AxieRepository;
@@ -122,10 +124,11 @@ class RecentlySoldAxieService
             /**
              * @var $_rs RecentlySoldAxie
              */
-            return [
+            $o = [
                 'date' => $serializer->normalize($_rs->getDate()),
                 'price_eth' => $_rs->getPriceEth(),
                 'price_usd' => $_rs->getPriceUsd(),
+                'breed_count' => $_rs->getBreedCount(),
                 '$axieEntity' => $serializer->normalize($_rs->getAxie(), null, [
                     AbstractNormalizer::ATTRIBUTES => [
                         'id',
@@ -146,8 +149,60 @@ class RecentlySoldAxieService
                         'numberOfZeroEnergyCard',
                         'sumOfCardEnergy',
                     ]
-                ])
+                ]),
             ];
+            /**
+             * @var $parts AxiePart[]
+             */
+            $parts = $_rs->getAxie()->getParts();
+            foreach($parts as $part) {
+                $o['$axieParts'][$part->getType()] = [];
+                $o['$axieParts'][$part->getType()]['$part'] = $serializer->normalize($part, null, [
+                    AbstractNormalizer::ATTRIBUTES => [
+                        'id',
+                        'name',
+                        'type',
+                        'class'
+                    ]
+                ]);
+                if (null !== $part->getCardAbility()) {
+                    $o['$axieParts'][$part->getType()]['$cardAbility'] = $serializer->normalize($part->getCardAbility(), null, [
+                        AbstractNormalizer::ATTRIBUTES => [
+                            'id',
+                            'name',
+                            'attack',
+                            'defence',
+                            'energy',
+                            'description',
+                            'backgroundUrl',
+                        ]
+                    ]);
+                } else {
+                    $o['$axieParts'][$part->getType()]['$cardAbility'] = null;
+                }
+            }
+
+            /**
+             * @var $genes AxieGenes[]
+             */
+            $genes = $_rs->getAxie()->getGenes();
+            $o['$axieGenes'] = [
+                'd' => [],
+                'r1' => [],
+                'r2' => []
+            ];
+            foreach ($genes as $gene) {
+                $o['$axieGenes'][$gene->getGeneType()][$gene->getPart()->getType()] = $serializer->normalize($gene->getPart(), null, [
+                    AbstractNormalizer::ATTRIBUTES => [
+                        'id',
+                        'name',
+                        'type',
+                        'class'
+                    ]
+                ]);
+            }
+
+            return $o;
         }, $result);
 
         $output = [

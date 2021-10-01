@@ -15,6 +15,7 @@
                         {% set axie = data['$axieEntity'] %}
 {#                        {{ dump(data) }}#}
 {#                        {{ dump(data['$axieEntity']) }}#}
+{#                        {{ dump(data['$axieGenes']) }}#}
                         <div class="axie">
                             <div class="axie--column axie--column__axie-image-and-text">
                                 <div class="axie--image">
@@ -26,7 +27,7 @@
                                         <span class="axie--id">#{{ axie.id|number_format }}</span>
                                     </div>
                                     <div class="axie--text-row">
-                                        <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> 2, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality|number_format(2) }}%
+                                        <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> {{ data['breed_count'] }}, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality|number_format(2) }}%
                                     </div>
                                     <div class="axie--text-row">
                                         <span class="fs-5">Ξ {{ data.price_eth|number_format(4) }} <small class="fs-6">${{ data.price_usd|number_format(2) }}</small></span>
@@ -43,7 +44,7 @@
                             </div>
                             <div class="axie--column axie--column__axie-data">
                                 <div class="w-100" id="axie--data__{{ axie.id }}">
-                                    {% include '_partials/axie--data.twig' %}
+                                    {% include '_partials/axie--data.twig' with {data:data} only %}
                                 </div>
                             </div>
                         </div>
