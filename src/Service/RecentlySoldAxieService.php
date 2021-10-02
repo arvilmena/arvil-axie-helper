@@ -109,6 +109,70 @@ class RecentlySoldAxieService
         }
         $this->io->{$type}($msg);
     }
+
+    public function populateCards(RecentlySoldAxie $recentlySold) {
+        $parts = $recentlySold->getAxie()->getParts();
+        if (empty($parts)) {
+            $this->log('error: cannot get the parts of axie: ' . $recentlySold->getAxie()->getId(), 'error');
+            return;
+        }
+        foreach($parts as $part) {
+            switch(strtolower($part->getType())):
+                case 'back':
+                    if ( null !== $part->getCardAbility()) {
+                        $recentlySold->setBackCard($part->getCardAbility());
+                    }
+                    break;
+                case 'mouth':
+                    if ( null !== $part->getCardAbility()) {
+                        $recentlySold->setMouthCard($part->getCardAbility());
+                    }
+                    break;
+                case 'horn':
+                    if ( null !== $part->getCardAbility()) {
+                        $recentlySold->setHornCard($part->getCardAbility());
+                    }
+                    break;
+                case 'tail':
+                    if ( null !== $part->getCardAbility()) {
+                        $recentlySold->setTailCard($part->getCardAbility());
+                    }
+                    break;
+            endswitch;
+        }
+
+        $this->em->persist($recentlySold);
+        $this->em->flush();
+    }
+
+    public function populateRecentlySoldCards(SymfonyStyle $io = null) {
+        $this->io = $io;
+        $qb = $this->recentlySoldAxieRepo->createQueryBuilder('r');
+        $recentlySoldAxies = $qb
+            ->where($qb->expr()->isNull('r.backCard'))
+            ->orWhere($qb->expr()->isNull('r.mouthCard'))
+            ->orWhere($qb->expr()->isNull('r.mouthCard'))
+            ->orWhere($qb->expr()->isNull('r.hornCard'))
+            ->orWhere($qb->expr()->isNull('r.tailCard'))
+            ->setMaxResults(500)
+            ->getQuery()
+            ->getResult()
+        ;
+        if (count($recentlySoldAxies) < 1) {
+            $this->log('no RecentlySoldAxies found that has empty card abilities');
+            return;
+        } else {
+            $this->log('there are ' . count($recentlySoldAxies) . ' RecentlySoldAxies found!');
+        }
+        $count = 0;
+        /**
+         * @var $recentlySoldAxie RecentlySoldAxie
+         */
+        foreach ($recentlySoldAxies as $recentlySoldAxie) {
+            $this->log('> processing ' . $count++ . ' axie: ' . $recentlySoldAxie->getAxie()->getId());
+            $this->populateCards($recentlySoldAxie);
+        }
+    }
     
     public function serialize(RecentlySoldAxie $_rs) {
         /**
@@ -344,38 +408,7 @@ class RecentlySoldAxieService
          * @var $recentlySold RecentlySoldAxie
          */
         foreach ($qualifiedRecentlySold as $recentlySold) {
-            $parts = $recentlySold->getAxie()->getParts();
-            if (empty($parts)) {
-                $this->log('error: cannot get the parts of axie: ' . $recentlySold->getAxie()->getId(), 'error');
-                continue;
-            }
-            foreach($parts as $part) {
-                switch(strtolower($part->getType())):
-                    case 'back':
-                        if ( null !== $part->getCardAbility()) {
-                            $recentlySold->setBackCard($part->getCardAbility());
-                        }
-                        break;
-                    case 'mouth':
-                        if ( null !== $part->getCardAbility()) {
-                            $recentlySold->setMouthCard($part->getCardAbility());
-                        }
-                        break;
-                    case 'horn':
-                        if ( null !== $part->getCardAbility()) {
-                            $recentlySold->setHornCard($part->getCardAbility());
-                        }
-                        break;
-                    case 'tail':
-                        if ( null !== $part->getCardAbility()) {
-                            $recentlySold->setTailCard($part->getCardAbility());
-                        }
-                        break;
-                endswitch;
-            }
-
-            $this->em->persist($recentlySold);
-            $this->em->flush();
+            $this->populateCards($recentlySold);
         }
 
         $output['$qualifiedRecentlySoldCount'] = $qualifiedRecentlySoldCount;
