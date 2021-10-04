@@ -61,10 +61,25 @@ class HomepageController extends AbstractController
     public function index(): Response
     {
 
-        return $this->render('homepage/index.html.twig', [
-            'controller_name' => 'HomepageController',
-            'recentlySold' => $this->recentlySoldAxieService->get()
-        ]);
+        $context = [];
+        $context['recentlySold']['all']['recent'] = $this->recentlySoldAxieService->get();
+
+        foreach([
+            'aquatic',
+            'beast',
+            'bird',
+            'bug',
+            'dawn',
+            'dusk',
+            'mech',
+            'plant',
+            'reptile'] as $axieClass) {
+
+            $context['recentlySold'][$axieClass]['recent'] = $this->recentlySoldAxieService->get($axieClass);
+            $context['recentlySold'][$axieClass]['most-expensive'] = $this->recentlySoldAxieService->get($axieClass, 'most-expensive');
+        }
+
+        return $this->render('homepage/index.html.twig', $context);
     }
 
     /**

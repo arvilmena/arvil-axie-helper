@@ -79,7 +79,62 @@
   font-size: 90%;
 }
 
-.axie {
+.axie--column__axie-data {
+  display: none;
+}
+
+.axie--column__axie-image-and-text  {
+  display: flex;
+}
+
+.axie--image {
+  flex: 0 0 250px;
+  overflow: hidden;
+}
+
+.axie--text {
+  flex: 0 0 calc(100% - 250px);
+}
+
+.axie--image {
+  flex: 0 0 150px;
+  text-align: center;
+  @include media-breakpoint-up('lg') {
+    flex-basis: 100%;
+  }
+
+  img {
+    transform: scale(1.2);
+    @include media-breakpoint-up('lg') {
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+.axie--text {
+  flex: 0 0 calc(100% - 150px);
+  @include media-breakpoint-up('lg') {
+    flex-basis: 100%;
+  }
+}
+.axie--text-row {
+  display: flex;
+  align-items: center;
+  @include media-breakpoint-up('lg') {
+    justify-content: center;
+    text-align: center;
+  }
+}
+.axie--text-row__wrap {
+  flex-wrap: wrap;
+
+  & > * {
+    width: 100%;
+  }
+}
+
+.axie.axie__expand-on-desktop {
 
   @include media-breakpoint-up('lg') {
     display: flex;
@@ -92,6 +147,14 @@
     }
   }
 
+
+  .axie--column__axie-image-and-text  {
+    @include media-breakpoint-up('lg') {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+
   .axie--column__axie-data {
     display: none;
 
@@ -100,50 +163,6 @@
     }
   }
 
-  .axie--column__axie-image-and-text  {
-    display: flex;
-
-    @include media-breakpoint-up('lg') {
-      flex-wrap: wrap;
-    }
-  }
-
-  .axie--image {
-    flex: 0 0 150px;
-    text-align: center;
-    @include media-breakpoint-up('lg') {
-      flex-basis: 100%;
-    }
-
-    img {
-      @include media-breakpoint-up('lg') {
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
-  }
-  .axie--text {
-    flex: 0 0 calc(100% - 150px);
-    @include media-breakpoint-up('lg') {
-      flex-basis: 100%;
-    }
-  }
-  .axie--text-row {
-    display: flex;
-    align-items: center;
-    @include media-breakpoint-up('lg') {
-      justify-content: center;
-      text-align: center;
-    }
-  }
-  .axie--text-row__wrap {
-    flex-wrap: wrap;
-
-    & > * {
-      width: 100%;
-    }
-  }
 }
 
 .axie--class-icon {

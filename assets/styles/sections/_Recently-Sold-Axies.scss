@@ -2,4 +2,95 @@
   .axie {
     margin-bottom: 35px;
   }
+
+  h2 {
+    margin-bottom: 30px;
+  }
+}
+
+.Recently-Sold-Axies__3-per-row .Recently-Sold-Axies--wrapper {
+  display: flex;
+  flex-wrap: wrap;
+
+  .axie {
+    flex: 0 0 100%;
+    max-width: 100%;
+
+    @include media-breakpoint-up('md') {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+
+    @include media-breakpoint-up('xl') {
+      flex: 0 0 33.33%;
+      max-width: 33.33%;
+    }
+  }
+
+  .axie--text {
+    font-size: 90%;
+
+    @include media-breakpoint-up('md') {
+      flex: 0 0 50%;
+    }
+  }
+
+  .axie--image {
+    flex: 0 0 120px;
+
+    @include media-breakpoint-up('lg') {
+      flex: 0 0 150px;
+    }
+
+    img {
+      @include media-breakpoint-up('lg') {
+        max-width: 100%;
+      }
+    }
+  }
+
+}
+
+.Recently-Sold-Axies__horizontal-scroll .Recently-Sold-Axies--wrapper {
+  display: flex;
+  max-width: 100vw;
+  overflow-x: scroll;
+
+  .axie {
+    flex: 0 0 100%;
+    max-width: 100%;
+
+    @include media-breakpoint-up('md') {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+
+    @include media-breakpoint-up('xl') {
+      flex: 0 0 375px;
+      max-width: 375px;
+    }
+  }
+
+  .axie--text {
+    font-size: 90%;
+
+    @include media-breakpoint-up('md') {
+      flex: 0 0 50%;
+    }
+  }
+
+  .axie--image {
+    flex: 0 0 120px;
+
+    @include media-breakpoint-up('lg') {
+      flex: 0 0 150px;
+    }
+
+    img {
+      @include media-breakpoint-up('lg') {
+        max-width: 100%;
+      }
+    }
+  }
+
 }

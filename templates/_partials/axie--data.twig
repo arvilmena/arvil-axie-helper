@@ -2,7 +2,7 @@
     <div class="axie--card-abilities">
 
         {% for partName in ['back', 'mouth', 'horn', 'tail'] %}
-            {% if data['$axieParts'][partName]['$cardAbility']|length %}
+            {% if partName in data['$axieParts']|keys and data['$axieParts'][partName]['$cardAbility']|length %}
                 <figure class="axie--card">
                     <img src="{{ data['$axieParts'][partName]['$cardAbility']['backgroundUrl'] }}" alt="{{ data['$axieParts'][partName]['$cardAbility']['name'] }}" class="img-fluid axie--card-image">
                     <figcaption class="figure-caption axie--card-energy">{{ data['$axieParts'][partName]['$cardAbility']['energy'] }}</figcaption>
@@ -29,7 +29,11 @@
                 <tr>
                     <th scope="row">{{ part|title }}</th>
                     {% for i in ['d', 'r1', 'r2'] %}
-                        <td><span class="axie--class-icon axie--class-icon__{{ data['$axieGenes'][i][part]['class'] }}"></span><span class="text-color--axie-class__{{ data['$axieGenes'][i][part]['class'] }}">{{ data['$axieGenes'][i][part]['name'] }}</span></td>
+                        <td>
+                        {% if part in data['$axieGenes'][i]|keys %}
+                            <span class="axie--class-icon axie--class-icon__{{ data['$axieGenes'][i][part]['class'] }}"></span><span class="text-color--axie-class__{{ data['$axieGenes'][i][part]['class'] }}">{{ data['$axieGenes'][i][part]['name'] }}</span>
+                        {% endif %}
+                        </td>
                     {% endfor %}
                 </tr>
             {% endfor %}

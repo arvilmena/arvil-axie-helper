@@ -112,30 +112,40 @@ class RecentlySoldAxieService
 
     public function populateCards(RecentlySoldAxie $recentlySold) {
         $parts = $recentlySold->getAxie()->getParts();
-        if (empty($parts)) {
+        $output = [ 'isSuccessful' => true ];
+        if (count($parts) < 6) {
             $this->log('error: cannot get the parts of axie: ' . $recentlySold->getAxie()->getId(), 'error');
-            return;
+            $output['isSuccessful'] = false;
+            return $output;
         }
         foreach($parts as $part) {
             switch(strtolower($part->getType())):
                 case 'back':
                     if ( null !== $part->getCardAbility()) {
                         $recentlySold->setBackCard($part->getCardAbility());
+                    } else {
+                        $output['isSuccessful'] = false;
                     }
                     break;
                 case 'mouth':
                     if ( null !== $part->getCardAbility()) {
                         $recentlySold->setMouthCard($part->getCardAbility());
+                    } else {
+                        $output['isSuccessful'] = false;
                     }
                     break;
                 case 'horn':
                     if ( null !== $part->getCardAbility()) {
                         $recentlySold->setHornCard($part->getCardAbility());
+                    } else {
+                        $output['isSuccessful'] = false;
                     }
                     break;
                 case 'tail':
                     if ( null !== $part->getCardAbility()) {
                         $recentlySold->setTailCard($part->getCardAbility());
+                    } else {
+                        $output['isSuccessful'] = false;
                     }
                     break;
             endswitch;
@@ -143,17 +153,19 @@ class RecentlySoldAxieService
 
         $this->em->persist($recentlySold);
         $this->em->flush();
+        return $output;
     }
 
     public function populateRecentlySoldCards(SymfonyStyle $io = null) {
         $this->io = $io;
         $qb = $this->recentlySoldAxieRepo->createQueryBuilder('r');
         $recentlySoldAxies = $qb
-            ->where($qb->expr()->isNull('r.backCard'))
+            ->orwhere($qb->expr()->isNull('r.backCard'))
             ->orWhere($qb->expr()->isNull('r.mouthCard'))
             ->orWhere($qb->expr()->isNull('r.mouthCard'))
             ->orWhere($qb->expr()->isNull('r.hornCard'))
             ->orWhere($qb->expr()->isNull('r.tailCard'))
+            ->orderBy('r.axie', 'DESC')
             ->setMaxResults(500)
             ->getQuery()
             ->getResult()
@@ -164,13 +176,44 @@ class RecentlySoldAxieService
         } else {
             $this->log('there are ' . count($recentlySoldAxies) . ' RecentlySoldAxies found!');
         }
+        $processRecentlySold = function(RecentlySoldAxie $recentlySoldAxie, int $count, array $cannotProcess = [], array $unprocessedRecentlySoldAxies = []) {
+            $this->log('> processing ' . $count++ . ' / rs: ' . $recentlySoldAxie->getId() .  ' / axie: ' . $recentlySoldAxie->getAxie()->getId());
+            $output = $this->populateCards($recentlySoldAxie);
+            if (false === $output['isSuccessful']) {
+                $cannotProcess[] = $recentlySoldAxie->getAxie()->getId();
+                $unprocessedRecentlySoldAxies[] = $recentlySoldAxie;
+            }
+            return [
+                '$cannotProcess' => $cannotProcess,
+                '$unprocessedRecentlySoldAxies' => $unprocessedRecentlySoldAxies,
+                '$count' => $count
+            ];
+        };
         $count = 0;
+        $cannotProcess = [];
+        $unprocessedRecentlySoldAxies = [];
         /**
          * @var $recentlySoldAxie RecentlySoldAxie
          */
         foreach ($recentlySoldAxies as $recentlySoldAxie) {
-            $this->log('> processing ' . $count++ . ' axie: ' . $recentlySoldAxie->getAxie()->getId());
-            $this->populateCards($recentlySoldAxie);
+            $output = $processRecentlySold($recentlySoldAxie, $count, $cannotProcess, $unprocessedRecentlySoldAxies);
+            $count = $output['$count'];
+            $cannotProcess = $output['$cannotProcess'];
+            $unprocessedRecentlySoldAxies = $output['$unprocessedRecentlySoldAxies'];
+        }
+
+        if (!empty($output['$cannotProcess'])) {
+            $this->log('> there are some axies that cannot be processed, running axie data service on them');
+            $this->axieDataService->processAllUnprocessed($this->io, $output['$cannotProcess']);
+            $count = 0;
+            $cannotProcess = [];
+            $unprocessedRecentlySoldAxies = [];
+            foreach ($output['$unprocessedRecentlySoldAxies'] as $recentlySoldAxie) {
+                $output = $processRecentlySold($recentlySoldAxie, $count, $cannotProcess, $unprocessedRecentlySoldAxies);
+                $count = $output['$count'];
+                $cannotProcess = $output['$cannotProcess'];
+                $unprocessedRecentlySoldAxies = $output['$unprocessedRecentlySoldAxies'];
+            }
         }
     }
     
@@ -210,6 +253,7 @@ class RecentlySoldAxieService
          * @var $parts AxiePart[]
          */
         $parts = $_rs->getAxie()->getParts();
+        $o['$axieParts'] = [];
         foreach($parts as $part) {
             $o['$axieParts'][$part->getType()] = [];
             $o['$axieParts'][$part->getType()]['$part'] = $this->serializer->normalize($part, null, [
@@ -260,24 +304,70 @@ class RecentlySoldAxieService
         return $o;
     }
 
-    public function get($amount = 20, $page = 1) {
+    public function get($axieClass = null, $type = 'recent', $amount = 20) {
 
         $qb = $this->recentlySoldAxieRepo->createQueryBuilder('r');
         $qb
             ->andWhere('r.priceUsd > :minPrice')
             ->setParameter('minPrice', 800)
             ->setMaxResults($amount)
-            ->orderBy('r.date', 'DESC')
-            ;
+        ;
+
+        if (null!== $axieClass) {
+            $qb->join('r.axie', 'a')
+                    ->andWhere('a.class = :axieClass')
+                    ->setParameter('axieClass', $axieClass)
+                ;
+        }
+
+        switch ($type):
+            case 'recent':
+                $qb->orderBy('r.date', 'DESC');
+            break;
+            case 'most-expensive':
+                $qb->orderBy('r.priceUsd', 'DESC')
+                ->andWhere($qb->expr()->isNotNull('r.backCard'))
+                ->andWhere($qb->expr()->isNotNull('r.mouthCard'))
+                ->andWhere($qb->expr()->isNotNull('r.hornCard'))
+                ->andWhere($qb->expr()->isNotNull('r.tailCard'))
+                ;
+            break;
+        endswitch;
+
         $result = $qb->getQuery()->getResult();
 
         $recentlySold = array_map([$this, 'serialize'], $result);
 
-        $output = [
+        return [
             '$recentlySold' => $recentlySold
         ];
 
-        return $output;
+    }
+
+    public function getSameCards(RecentlySoldAxie $recentlySoldAxie, Axie $exceptAxie = null, SymfonyStyle $io = null) {
+        $this->io = $io;
+
+        $qb = $this->recentlySoldAxieRepo->createQueryBuilder('r');
+        $qb
+            ->andWhere('r.backCard = :backCard')
+            ->andWhere('r.mouthCard = :mouthCard')
+            ->andWhere('r.hornCard = :hornCard')
+            ->andWhere('r.tailCard = :tailCard')
+            ->setParameter('backCard', $recentlySoldAxie->getBackCard())
+            ->setParameter('mouthCard', $recentlySoldAxie->getMouthCard())
+            ->setParameter('hornCard', $recentlySoldAxie->getHornCard())
+            ->setParameter('tailCard', $recentlySoldAxie->getTailCard())
+        ;
+        if (null !== $exceptAxie) {
+            $qb = $qb->andWhere('r.axie != :axie')->setParameter('axie', $exceptAxie);
+        }
+        $result = $qb->setMaxResults(50)->orderBy('r.date', 'DESC')->getQuery()->getResult();
+
+        $recentlySold = array_map([$this, 'serialize'], $result);
+
+        return [
+            '$recentlySold' => $recentlySold
+        ];
 
     }
 

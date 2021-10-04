@@ -9,12 +9,41 @@
         <div class="row">
             <div class="col col-12">
 
-                <section class="Recently-Sold-Axies">
-
-                    {% for data in recentlySold['$recentlySold'] %}
-                        {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data} only %}
-                    {% endfor %}
+                <section class="Recently-Sold-Axies Recently-Sold-Axies__horizontal-scroll mb-5">
+                    <h2>Most expensive</h2>
+                    <div class="Recently-Sold-Axies--wrapper">
+                        {% for data in recentlySold['all']['recent']['$recentlySold'] %}
+                            {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data|merge({'isCompact': true})} only %}
+                        {% endfor %}
+                    </div>
                 </section>
+
+                {% for class in [
+                    'aquatic',
+                    'beast',
+                    'bird',
+                    'bug',
+                    'dawn',
+                    'dusk',
+                    'mech',
+                    'plant',
+                    'reptile'] %}
+                    <section class="Recently-Sold-Axies Recently-Sold-Axies__horizontal-scroll mb-5">
+                        <h2>{{ class|title }}</h2>
+                        <h3>Recent</h3>
+                        <div class="Recently-Sold-Axies--wrapper mb-3">
+                            {% for data in recentlySold[class]['recent']['$recentlySold'] %}
+                                {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data|merge({'isCompact': true})} only %}
+                            {% endfor %}
+                        </div>
+                        <h3>Most expensive</h3>
+                        <div class="Recently-Sold-Axies--wrapper mb-3">
+                            {% for data in recentlySold[class]['most-expensive']['$recentlySold'] %}
+                                {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data|merge({'isCompact': true})} only %}
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endfor %}
 
             </div>
         </div>

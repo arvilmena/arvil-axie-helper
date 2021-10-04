@@ -1,5 +1,5 @@
 {% set axie = data['$axieEntity'] %}
-<div class="axie">
+<div class="axie {{ ('isCompact' in data|keys and data['isCompact']) ? 'axie__compact' : 'axie__expand-on-desktop' }}">
     <div class="axie--column axie--column__axie-image-and-text">
         <div class="axie--image">
             <img src="{{ axie.imageUrl }}" alt="{{ axie.id }}" class="img-fluid" id="axie--{{ axie.id }}" data-template="axie--data__{{ axie.id }}">
@@ -10,13 +10,13 @@
                 <span class="axie--id">#{{ axie.id|number_format }}</span>
             </div>
             <div class="axie--text-row">
-                <span class="axie--breed-count-icon"><small>🍆</small>&nbsp;&nbsp;</span> {{ data['breed_count'] }}, H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality|number_format(2) }}%
+                H: {{ axie.hp }}, S: {{ axie.speed }}, M: {{ axie.morale }}, P: {{ axie.quality|number_format(2) }}%
             </div>
             <div class="axie--text-row">
                 <time class="timeago" datetime="{{ data['date']|date('rfc3339') }}">{{ data['date']|date('F j, Y g:ia', "Asia/Manila") }}</time>
             </div>
             <div class="axie--text-row">
-                <span class="fs-5">Ξ {{ data.price_eth|number_format(4) }} <small class="fs-6">${{ data.price_usd|number_format(2) }}</small></span>
+                <span class="fs-5">Ξ {{ data.price_eth|number_format(4) }} <small class="fs-6">${{ data.price_usd|number_format(2) }}</small></span><span class="axie--breed-count-icon">&nbsp;&nbsp;<small>🍆</small>&nbsp;&nbsp;</span> {{ data['breed_count'] }}
             </div>
             <div class="axie--text-row axie--text-row__wrap">
                 <div>
@@ -36,28 +36,27 @@
             {% include '_partials/axie--data.twig' with {data:data} only %}
         </div>
     </div>
+
+    <script>
+        (function() {
+            tippy('#axie--{{ axie.id }}', {
+                content(reference) {
+                    const id = reference.getAttribute('data-template');
+                    const template = document.getElementById(id);
+                    return '<div class="axie--data-tooltip">' + template.innerHTML + '</div>';
+                },
+                allowHTML: true,
+                placement: 'auto',
+                maxWidth: 400,
+                // onHide() {
+                //     return false;
+                // }
+                trigger: 'click',
+            });
+
+            var tippyInstance = document.getElementById('axie--{{ axie.id }}')._tippy;
+
+            // tippyInstance.show();
+        })();
+    </script>
 </div>
-
-
-<script>
-    (function() {
-        tippy('#axie--{{ axie.id }}', {
-            content(reference) {
-                const id = reference.getAttribute('data-template');
-                const template = document.getElementById(id);
-                return '<div class="axie--data-tooltip">' + template.innerHTML + '</div>';
-            },
-            allowHTML: true,
-            placement: 'auto',
-            maxWidth: 400,
-            // onHide() {
-            //     return false;
-            // }
-            trigger: 'click',
-        });
-
-        var tippyInstance = document.getElementById('axie--{{ axie.id }}')._tippy;
-
-        // tippyInstance.show();
-    })();
-</script>

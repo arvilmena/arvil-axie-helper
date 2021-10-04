@@ -10,7 +10,18 @@
             <div class="col col-12">
 
                 <section class="Recently-Sold-Axies">
-                    {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data['$recentlySold']} only %}
+                    <div class="Recently-Sold-Axies--wrapper">
+                        {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:data['$recentlySold']} only %}
+                    </div>
+                </section>
+
+                <section class="Recently-Sold-Axies Recently-Sold-Axies__3-per-row">
+                    <h2>Same cards ({{ data['$recentlySoldSameCards']['$recentlySold']|length }})</h2>
+                    <div class="Recently-Sold-Axies--wrapper">
+                        {% for d in data['$recentlySoldSameCards']['$recentlySold'] %}
+                            {% include'recently_sold_axie/_recently_sold_axie.twig' with {data:d|merge({'isCompact':true})} only %}
+                        {% endfor %}
+                    </div>
                 </section>
 
             </div>

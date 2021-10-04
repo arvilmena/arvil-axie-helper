@@ -49,9 +49,12 @@ class RecentlySoldAxieController extends AbstractController
 
         $recentlySold = $this->recentlySoldAxieService->serialize($recentlySoldEntity);
 
+        $recentlySoldSameCards = $this->recentlySoldAxieService->getSameCards($recentlySoldEntity, $recentlySoldEntity->getAxie());
+
         return $this->render('recently_sold_axie/id.html.twig', [
             'data' => [
-                '$recentlySold' => $recentlySold
+                '$recentlySold' => $recentlySold,
+                '$recentlySoldSameCards' => $recentlySoldSameCards,
             ],
         ]);
     }
