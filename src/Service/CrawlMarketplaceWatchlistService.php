@@ -136,9 +136,10 @@ class CrawlMarketplaceWatchlistService
         if ($statusCode !== 200) {
             $this->em->persist($crawl);
             $this->em->flush();
-            $this->log('processing response for watchlist: ' . $watchlist->getName());
+            $this->log( '> API returned non-200 status code: ' . $statusCode . ' for watchlist id: ' . $response->getInfo('user_data')['watchlistId'], 'error' );
             return $output;
         }
+        $this->log('processing response for watchlist: ' . $watchlist->getName());
 
         $content = $response->toArray();
 
@@ -492,10 +493,6 @@ class CrawlMarketplaceWatchlistService
                     'user_data' => [
                         'watchlistId' => $watchlist->getId(),
                         'request' => json_encode($payload)
-                    ],
-                    'headers' => [
-                        'Content-Type' => 'text/plain',
-                        'User-Agent' => 'PostmanRuntime/7.28.4',
                     ],
                 ],
             ];
