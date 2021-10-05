@@ -104,7 +104,7 @@ class CrawlMarketplaceWatchlistService
 
     public function getMaxAllowedPrice(): int
     {
-        return 750;
+        return 1100;
     }
 
     public function processResponse($crawlSessionUlid, $response, $output = [], SymfonyStyle $io = null) {
