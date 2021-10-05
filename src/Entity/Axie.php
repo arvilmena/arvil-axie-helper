@@ -148,6 +148,21 @@ class Axie
      */
     private $sumOfCardEnergy;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $title;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $mysticParts;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $specialGenes;
+
     public function __construct(int $id) {
         $this->id = $id;
         $this->url = 'https://marketplace.axieinfinity.com/axie/' . $id;
@@ -529,6 +544,42 @@ class Axie
     public function setSumOfCardEnergy(?int $sumOfCardEnergy): self
     {
         $this->sumOfCardEnergy = $sumOfCardEnergy;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getMysticParts(): ?int
+    {
+        return $this->mysticParts;
+    }
+
+    public function setMysticParts(?int $mysticParts): self
+    {
+        $this->mysticParts = $mysticParts;
+
+        return $this;
+    }
+
+    public function getSpecialGenes(): ?int
+    {
+        return $this->specialGenes;
+    }
+
+    public function setSpecialGenes(?int $specialGenes): self
+    {
+        $this->specialGenes = $specialGenes;
 
         return $this;
     }

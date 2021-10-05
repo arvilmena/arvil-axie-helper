@@ -112,7 +112,7 @@ class AxieDataService
         } else {
             $this->log('Starting Axie Data population for ' . $toProcessCount . ' Ids: ' . implode(',', $specificAxieIds));
             $qb = $this->axieRepo->createQueryBuilder('a')
-                ->where('a.isProcessed = false OR a.numberOfZeroEnergyCard IS NULL');
+                ->where('a.isProcessed = false OR a.numberOfZeroEnergyCard IS NULL OR a.specialGenes IS NULL');
 
             $qb->andWhere($qb->expr()->in('a.id', $specificAxieIds))
                 ->orderBy('a.id', 'ASC');
@@ -133,7 +133,7 @@ class AxieDataService
              */
             foreach($_tp as $axieEntity) {
 
-                if ( true === $axieEntity->getIsProcessed() ) {
+                if ( true === $axieEntity->getIsProcessed() && null !== $axieEntity->getSpecialGenes() ) {
                     $this->log('> axie: ' . $axieEntity->getId() . ' is already processed, will just recalculate stat');
                     $this->axieCalculateStatService->recalculate($axieEntity, $this->io);
                     continue;
@@ -141,7 +141,7 @@ class AxieDataService
 
                 $id = $axieEntity->getId();
 
-                $this->log('processing Axie id# ' . $id);
+                $this->log('fetching details Axie id# ' . $id);
 
                 $body = '{"operationName":"GetAxieDetail","variables":{"axieId":"' . $id . '"},"query":"query GetAxieDetail($axieId: ID!) {\n  axie(axieId: $axieId) {\n    ...AxieDetail\n    __typename\n  }\n}\n\nfragment AxieDetail on Axie {\n  id\n  image\n  class\n  chain\n  name\n  genes\n  owner\n  birthDate\n  bodyShape\n  class\n  sireId\n  sireClass\n  matronId\n  matronClass\n  stage\n  title\n  breedCount\n  level\n  figure {\n    atlas\n    model\n    image\n    __typename\n  }\n  parts {\n    ...AxiePart\n    __typename\n  }\n  stats {\n    ...AxieStats\n    __typename\n  }\n  auction {\n    ...AxieAuction\n    __typename\n  }\n  ownerProfile {\n    name\n    __typename\n  }\n  battleInfo {\n    ...AxieBattleInfo\n    __typename\n  }\n  children {\n    id\n    name\n    class\n    image\n    title\n    stage\n    __typename\n  }\n  __typename\n}\n\nfragment AxieBattleInfo on AxieBattleInfo {\n  banned\n  banUntil\n  level\n  __typename\n}\n\nfragment AxiePart on AxiePart {\n  id\n  name\n  class\n  type\n  specialGenes\n  stage\n  abilities {\n    ...AxieCardAbility\n    __typename\n  }\n  __typename\n}\n\nfragment AxieCardAbility on AxieCardAbility {\n  id\n  name\n  attack\n  defense\n  energy\n  description\n  backgroundUrl\n  effectIconUrl\n  __typename\n}\n\nfragment AxieStats on AxieStats {\n  hp\n  speed\n  skill\n  morale\n  __typename\n}\n\nfragment AxieAuction on Auction {\n  startingPrice\n  endingPrice\n  startingTimestamp\n  endingTimestamp\n  duration\n  timeLeft\n  currentPrice\n  currentPriceUSD\n  suggestedPrice\n  seller\n  listingIndex\n  state\n  __typename\n}\n"}';
 
@@ -195,6 +195,8 @@ class AxieDataService
                             continue;
                         }
 
+                        $this->log('processing Axie id# ' . $response->getInfo('user_data')['axieId']);
+
                         /**
                          * @var $axieEntity Axie
                          */
@@ -217,16 +219,19 @@ class AxieDataService
                             ->setR2ClassPurity($axieGenes->getR2ClassPurity())
                             ->setPureness( $axieGenes->getPureness() )
                             ->setQuality($axieGenes->getQuality())
+                            ->setTitle($axieData['title'])
                         ;
                         $this->em->persist($axieEntity);
                         $this->em->flush();
 
                         $axieParts = $axieEntity->getParts();
-                        $shouldPopulateAxieParts = (count($axieParts) !== 6);
+                        $shouldPopulateAxieParts = (count($axieParts) !== 6 || $axieEntity->getSpecialGenes() === null);
                         if ($shouldPopulateAxieParts) {
                             $axieParts->clear();
                         }
 
+                        $numberOfMystic = 0;
+                        $numberOfSpecialGenes = 0;
                         foreach($axieData['parts'] as $part) {
                             $partEntity = $this->axiePartRepo->find($part['id']);
                             if (null === $partEntity) {
@@ -261,11 +266,19 @@ class AxieDataService
                                 }
                             }
 
+                            if (!empty($part['specialGenes'])) {
+                                $numberOfSpecialGenes++;
+                            }
+                            if (!empty($part['specialGenes']) && 'Mystic' === $part['specialGenes']) {
+                                $numberOfMystic++;
+                            }
+
                             if ($shouldPopulateAxieParts) {
                                 $axieEntity->addPart($partEntity);
                             }
                         }
                         if ($shouldPopulateAxieParts) {
+                            $axieEntity->setMysticParts($numberOfMystic)->setSpecialGenes($numberOfSpecialGenes);
                             $this->em->persist($axieEntity);
                             $this->em->flush();
                         }

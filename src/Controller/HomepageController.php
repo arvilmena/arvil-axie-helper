@@ -63,6 +63,7 @@ class HomepageController extends AbstractController
 
         $context = [];
         $context['recentlySold']['all']['recent'] = $this->recentlySoldAxieService->get();
+        $context['recentlySold']['all']['most-expensive'] = $this->recentlySoldAxieService->get(null, 'most-expensive');
 
         foreach([
             'aquatic',
