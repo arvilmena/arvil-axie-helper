@@ -134,10 +134,6 @@
                     });
                 }
             }
-            function fetchRecentlySold() {
-                var jxhr = $.get("{{ path('api_recently_sold') }}");
-            }
-            setInterval(fetchRecentlySold, 7000);
             setInterval(fetchNotification, 15000);
             fetchNotification();
             setInterval(autoUpdateTimeAgos, 60000);
