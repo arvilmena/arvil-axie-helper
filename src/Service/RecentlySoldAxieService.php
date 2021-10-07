@@ -312,6 +312,18 @@ class RecentlySoldAxieService
             ->setParameter('minPrice', 800)
             ->setMaxResults($amount)
             ->join('r.axie', 'a')
+            ->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->isNull('a.title'),
+                    $qb->expr()->eq('a.title', "''")
+                )
+            )
+            ->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->isNull('a.specialGenes'),
+                    $qb->expr()->eq('a.specialGenes', 0)
+                )
+            )
         ;
 
         if (null!== $axieClass) {
@@ -332,18 +344,6 @@ class RecentlySoldAxieService
                     ->andWhere($qb->expr()->isNotNull('r.mouthCard'))
                     ->andWhere($qb->expr()->isNotNull('r.hornCard'))
                     ->andWhere($qb->expr()->isNotNull('r.tailCard'))
-                    ->andWhere(
-                        $qb->expr()->orX(
-                            $qb->expr()->isNull('a.title'),
-                            $qb->expr()->eq('a.title', "''")
-                        )
-                    )
-                    ->andWhere(
-                        $qb->expr()->orX(
-                            $qb->expr()->isNull('a.specialGenes'),
-                            $qb->expr()->eq('a.specialGenes', 0)
-                        )
-                    )
                 ;
             break;
         endswitch;
